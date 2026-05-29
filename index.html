@@ -75,6 +75,14 @@ a{text-decoration:none;color:inherit;}
   box-shadow:inset 0 0 0.9px 2px rgba(0,0,0,0.1);
   cursor:pointer;z-index:2;
 }
+/* Active swatch indicator — ring around the one currently loaded in the picker */
+.swatch-fg.active-swatch{
+  box-shadow:inset 0 0 0.9px 2px rgba(0,0,0,0.1),0 0 0 2px white,0 0 0 3.5px #282b33;
+}
+.swatch-bg.active-swatch{
+  box-shadow:inset 0 0 0.9px 2px rgba(0,0,0,0.1),0 0 0 2px white,0 0 0 3.5px #282b33;
+}
+
 /* Swap arrows — top-right corner */
 .swatch-swap{
   position:absolute;top:0;right:0;
@@ -1057,7 +1065,7 @@ function loadProject(images) {
     img.style.cssText = 'display:block;width:100%;height:auto;vertical-align:top;';
     img.onload = () => {
       if (!firstWidth) {
-        firstWidth = Math.min(img.naturalWidth || 800, 1400);
+        firstWidth = Math.min(img.naturalWidth || 800, 800);
         canvasInner.style.width = firstWidth + 'px';
       }
       pending--;
@@ -1361,7 +1369,8 @@ function doZoom(delta) {
 // ================================================================
 // COLOR PICKER
 // ================================================================
-let hsvState = { h: 173, s: 73, v: 83 }; // matches initial drawColor
+let hsvState    = { h: 173, s: 73, v: 83 }; // matches initial drawColor
+let activeSwatch = 'fg'; // 'fg' | 'bg' — which swatch the picker is editing
 
 // -- Conversion helpers --
 function hsvToRgb(h, s, v) {
@@ -1435,39 +1444,50 @@ function updateCursors() {
   }
 }
 
-// -- Central update: apply a new drawColor and sync all UI --
+// -- Central update: write to active swatch and sync all picker UI --
 function applyColor(r, g, b, updateHSV = true) {
-  drawColor = { r: Math.round(Math.max(0,Math.min(255,r))),
-                g: Math.round(Math.max(0,Math.min(255,g))),
-                b: Math.round(Math.max(0,Math.min(255,b))) };
-  if (updateHSV) hsvState = rgbToHsv(drawColor.r, drawColor.g, drawColor.b);
+  const c = {
+    r: Math.round(Math.max(0, Math.min(255, r))),
+    g: Math.round(Math.max(0, Math.min(255, g))),
+    b: Math.round(Math.max(0, Math.min(255, b)))
+  };
+  if (activeSwatch === 'fg') {
+    drawColor = c;
+    document.getElementById('swatch-fg').style.background = `rgb(${c.r},${c.g},${c.b})`;
+  } else {
+    bgColor = c;
+    document.getElementById('swatch-bg').style.background = `rgb(${c.r},${c.g},${c.b})`;
+  }
+  if (updateHSV) hsvState = rgbToHsv(c.r, c.g, c.b);
 
   // Sliders + number inputs
   ['r','g','b'].forEach(ch => {
     const s = document.getElementById(`${ch}-slider`);
     const n = document.getElementById(`${ch}-num`);
-    if (s) s.value = drawColor[ch];
-    if (n) n.value = drawColor[ch];
-    // Update slider gradient track
-    const { r: dr, g: dg, b: db } = drawColor;
-    const grad = ch === 'r' ? `linear-gradient(to right,rgb(0,${dg},${db}),rgb(255,${dg},${db}))`
-               : ch === 'g' ? `linear-gradient(to right,rgb(${dr},0,${db}),rgb(${dr},255,${db}))`
-               :               `linear-gradient(to right,rgb(${dr},${dg},0),rgb(${dr},${dg},255))`;
+    if (s) s.value = c[ch];
+    if (n) n.value = c[ch];
+    const grad = ch === 'r' ? `linear-gradient(to right,rgb(0,${c.g},${c.b}),rgb(255,${c.g},${c.b}))`
+               : ch === 'g' ? `linear-gradient(to right,rgb(${c.r},0,${c.b}),rgb(${c.r},255,${c.b}))`
+               :               `linear-gradient(to right,rgb(${c.r},${c.g},0),rgb(${c.r},${c.g},255))`;
     if (s) s.style.background = grad;
   });
 
-  // Hex
   const hexEl = document.getElementById('hex-input');
   if (hexEl && document.activeElement !== hexEl)
-    hexEl.value = rgbToHex(drawColor.r, drawColor.g, drawColor.b);
+    hexEl.value = rgbToHex(c.r, c.g, c.b);
 
-  // Swatch
-  document.getElementById('swatch-fg').style.background =
-    `rgb(${drawColor.r},${drawColor.g},${drawColor.b})`;
-
-  // Redraw SV canvas if hue changed
   drawSVCanvas();
   updateCursors();
+}
+
+// -- Load a swatch into the picker and mark it active --
+function activateSwatch(which) {
+  activeSwatch = which;
+  const c = which === 'fg' ? drawColor : bgColor;
+  hsvState = rgbToHsv(c.r, c.g, c.b);
+  applyColor(c.r, c.g, c.b, false);
+  document.getElementById('swatch-fg').classList.toggle('active-swatch', which === 'fg');
+  document.getElementById('swatch-bg').classList.toggle('active-swatch', which === 'bg');
 }
 
 // -- Picker interaction helpers --
@@ -1715,16 +1735,19 @@ canvasContainer.addEventListener('wheel', e => {
 }, { passive: false });
 
 // ================================================================
-// SWATCH SWAP
+// SWATCH CONTROLS
 // ================================================================
-function doSwap() {
+// Clicking a swatch loads it into the color picker for editing
+document.getElementById('swatch-fg').addEventListener('click', () => activateSwatch('fg'));
+document.getElementById('swatch-bg').addEventListener('click', () => activateSwatch('bg'));
+
+// Swap arrow swaps the two colors, then reloads fg into the picker
+document.getElementById('swatch-swap').addEventListener('click', () => {
   [drawColor, bgColor] = [bgColor, drawColor];
+  document.getElementById('swatch-fg').style.background = `rgb(${drawColor.r},${drawColor.g},${drawColor.b})`;
   document.getElementById('swatch-bg').style.background = `rgb(${bgColor.r},${bgColor.g},${bgColor.b})`;
-  applyColor(drawColor.r, drawColor.g, drawColor.b);
-}
-document.getElementById('swatch-swap').addEventListener('click', doSwap);
-document.getElementById('swatch-fg').addEventListener('click', doSwap);
-document.getElementById('swatch-bg').addEventListener('click', doSwap);
+  activateSwatch('fg');
+});
 
 // ================================================================
 // INIT
@@ -1733,6 +1756,7 @@ renderGallery();
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     initColorPicker();
+    activateSwatch('fg'); // fg starts as the active swatch
     // Pre-size the canvas so drawing tools work before an image is loaded
     const w = canvasInner.clientWidth  || 600;
     const h = canvasInner.clientHeight || 500;
