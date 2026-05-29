@@ -506,10 +506,11 @@ a{text-decoration:none;color:inherit;}
       <div class="logo"><img src="Assets/Bryce Logo.svg" alt="Bryce Stradling"></div>
 
       <div class="toolbar-grid" id="toolbar-grid">
-        <button class="tool-btn" data-tool="move"       title="Line">       <img src="Assets/Move.svg"          alt="Line"></button>
+        
         <button class="tool-btn" data-tool="zoom"       title="Zoom">       <img src="Assets/Zoom.svg"          alt="Zoom"></button>
         <button class="tool-btn" data-tool="hand"       title="Hand">       <img src="Assets/handtool.svg"      alt="Hand"></button>
         <button class="tool-btn" data-tool="ellipse"    title="Ellipse">    <img src="Assets/Ellipsetool.svg"   alt="Ellipse"></button>
+        <button class="tool-btn" data-tool="move"       title="Line">       <img src="Assets/linetool.svg"          alt="Line"></button>
         <button class="tool-btn" data-tool="rectangle"  title="Rectangle">  <img src="Assets/Rectangletool.svg" alt="Rectangle"></button>
         <button class="tool-btn" data-tool="polygon"    title="Polygon">    <img src="Assets/Polygon tool.svg"  alt="Polygon"></button>
         <button class="tool-btn highlighted" data-tool="text"      title="Text">       <img src="Assets/TypeTool.svg"      alt="Text"></button>
@@ -978,7 +979,7 @@ function renderGallery() {
     fEl.innerHTML = `
       <div class="g-folder-hd">
         <div class="g-icon-cell">
-          <div class="g-icon-wrap"><img src="Assets/FolderClosedIcon.svg" alt=""></div>
+          <div class="g-icon-wrap"><img class="g-folder-icon" src="Assets/FolderOpenIcon.svg" alt=""></div>
         </div>
         <div class="g-chev-cell"><img class="g-chev open" src="Assets/ChevronRight.svg" alt=""></div>
         <div class="g-folder-name">${folder.name}</div>
@@ -988,7 +989,11 @@ function renderGallery() {
 
     fEl.querySelector('.g-folder-hd').addEventListener('click', () => {
       fEl.classList.toggle('open');
-      fEl.querySelector('.g-chev').classList.toggle('open');
+      const isOpen = fEl.classList.contains('open');
+      fEl.querySelector('.g-chev').classList.toggle('open', isOpen);
+      fEl.querySelector('.g-folder-icon').src = isOpen
+        ? 'Assets/FolderOpenIcon.svg'
+        : 'Assets/FolderClosedIcon.svg';
     });
 
     const items = fEl.querySelector('.g-folder-items');
