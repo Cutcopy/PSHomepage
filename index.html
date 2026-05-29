@@ -1683,7 +1683,7 @@ document.getElementById('toolbar-grid').addEventListener('click', e => {
   document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   activeTool = btn.dataset.tool;
-  document.body.className = `tool-${activeTool}`;
+  document.body.className = `tool-${activeTool}${darkMode ? ' dark' : ''}`;
   // Show/hide text toolbar
   showTextBar(activeTool === 'text');
   // Dismiss any open text input if switching away
