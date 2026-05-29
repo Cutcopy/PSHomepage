@@ -456,7 +456,7 @@ a{text-decoration:none;color:inherit;}
 .tool-move #draw-canvas,.tool-hand #draw-canvas{cursor:grab;}
 .tool-move #draw-canvas:active,.tool-hand #draw-canvas:active{cursor:grabbing;}
 .tool-zoom #draw-canvas{cursor:zoom-in;}
-.tool-eyedropper #draw-canvas{cursor:crosshair;}
+.tool-eyedropper #draw-canvas,.tool-eyedropper #canvas-inner{cursor:crosshair;}
 .tool-eraser #draw-canvas{cursor:cell;}
 .tool-text #draw-canvas{cursor:text;}
 .tool-fill #draw-canvas{cursor:copy;}
@@ -1098,22 +1098,26 @@ function getPos(e) {
   };
 }
 
-// canvasInner handles text tool even when no image is loaded (draw-canvas is hidden)
+// canvasInner handles text + eyedropper when draw-canvas hasn't been initialised yet
 canvasInner.addEventListener('mousedown', e => {
-  if (activeTool !== 'text') return;
-  if (e.target === drawCanvas || drawCanvas.contains(e.target)) return; // handled below
-  e.preventDefault(); // prevent browser stealing focus after we set it
+  if (e.target === drawCanvas || drawCanvas.contains(e.target)) return; // handled by drawCanvas listener
   const rect = canvasInner.getBoundingClientRect();
   const x = (e.clientX - rect.left) / canvasScale;
   const y = (e.clientY - rect.top)  / canvasScale;
-  ensureCanvasReady();
-  placeText(x, y);
-  e.stopPropagation();
+  if (activeTool === 'text') {
+    e.preventDefault();
+    ensureCanvasReady();
+    placeText(x, y);
+    e.stopPropagation();
+  } else if (activeTool === 'eyedropper') {
+    e.preventDefault();
+    openEyeDropper(x, y);
+  }
 });
 
 drawCanvas.addEventListener('mousedown', e => {
   const pos = getPos(e);
-  if (activeTool === 'eyedropper') { pickColor(pos.x, pos.y); return; }
+  if (activeTool === 'eyedropper') { e.preventDefault(); openEyeDropper(pos.x, pos.y); return; }
   if (activeTool === 'fill')       { floodFill(Math.round(pos.x), Math.round(pos.y)); return; }
   if (activeTool === 'move' || activeTool === 'hand') { startPan(e); return; }
   if (activeTool === 'zoom') { doZoom(e.altKey ? -0.2 : 0.2); return; }
@@ -1201,20 +1205,25 @@ drawCanvas.addEventListener('touchmove', e => {
 }, { passive: false });
 drawCanvas.addEventListener('touchend', () => drawCanvas.dispatchEvent(new MouseEvent('mouseup')));
 
-// Eyedropper
-function pickColor(x, y) {
-  const tmp = document.createElement('canvas');
-  tmp.width = drawCanvas.width; tmp.height = drawCanvas.height;
-  const t = tmp.getContext('2d');
-  try { t.drawImage(projectImage, 0, 0); } catch(e) {}
-  t.drawImage(drawCanvas, 0, 0);
-  const px = t.getImageData(Math.round(x), Math.round(y), 1, 1).data;
-  if (px[3] > 0) {
-    drawColor = { r: px[0], g: px[1], b: px[2] };
-    document.getElementById('r-slider').value = drawColor.r;
-    document.getElementById('g-slider').value = drawColor.g;
-    document.getElementById('b-slider').value = drawColor.b;
-    updateColorUI();
+// Eyedropper — uses native EyeDropper API (Chrome/Edge) to sample from anywhere on screen;
+// falls back to sampling the drawing canvas layer only (CORS blocks Behance images)
+function openEyeDropper(fallbackX, fallbackY) {
+  if ('EyeDropper' in window) {
+    const picker = new window.EyeDropper();
+    picker.open()
+      .then(result => {
+        const hex = result.sRGBHex.replace('#', '');
+        applyColor(
+          parseInt(hex.slice(0, 2), 16),
+          parseInt(hex.slice(2, 4), 16),
+          parseInt(hex.slice(4, 6), 16)
+        );
+      })
+      .catch(() => {}); // user pressed Escape
+  } else {
+    // Fallback: sample from the drawing annotation layer
+    const px = ctx.getImageData(Math.round(fallbackX), Math.round(fallbackY), 1, 1).data;
+    if (px[3] > 0) applyColor(px[0], px[1], px[2]);
   }
 }
 
