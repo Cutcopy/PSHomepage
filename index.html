@@ -178,6 +178,13 @@ a{text-decoration:none;color:inherit;}
   display:block;max-width:100%;position:relative;z-index:1;
   transition:opacity 0.2s;
 }
+#project-strip{
+  display:block;width:100%;position:relative;z-index:1;
+  line-height:0; /* removes gap between inline-block images */
+}
+#project-strip img{
+  display:block;width:100%;height:auto;
+}
 #draw-canvas{
   position:absolute;top:0;left:0;z-index:2;
 }
@@ -704,56 +711,137 @@ const GALLERY = [
         name: 'Language Acquisition',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/48d46d188132591.Y3JvcCw3OTUsNjIyLDQ4MCw0MDU.png',
         url: 'https://www.behance.net/gallery/188132591/Language-Acquisition-Explorations',
-        info: 'Client: Self-initiated\nProject: Language Acquisition Explorations\nGoal: UX research and visual design exploring how apps can better support language learners through engaging, adaptive interfaces.'
+        info: 'Client: Self-initiated\nProject: Language Acquisition Explorations\nGoal: UX research and visual design exploring how apps can better support language learners through engaging, adaptive interfaces.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/0d4b31188132591.6596e97c19c86.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/2879ec188132591.6596e97c1c4e1.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/c4f456188132591.6596e97c12637.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/1357ee188132591.6596e97c086ab.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/456692188132591.6596e97c1b205.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/74b251188132591.6596e97c13a86.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/eb0a0a188132591.6596e97c10011.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/78d106188132591.6596e97c11354.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/4f976f188132591.6596e97c16600.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/832242188132591.6596e97c07478.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/546f76188132591.6596e97c06423.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/e6bbab188132591.6596e97c0d671.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/3f953c188132591.6596e97c18b72.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/665e96188132591.6596e97c0acab.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/2d0a8e188132591.6596e97c14ff8.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/046d32188132591.6596e97c04f4d.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/4da274188132591.6596e97c0c298.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/280b6d188132591.6596e97c09915.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/de43b7188132591.6596e97c0ea30.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/4b818e188132591.6596e97c17bb0.png'
+        ]
       },
       {
         id: 'highlights-planner',
         name: 'Highlights Planner',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/5c6d94188129255.Y3JvcCwxNDQxLDExMjcsMCww.png',
         url: 'https://www.behance.net/gallery/188129255/Highlights-Planner',
-        info: 'Client: Highlights for Children\nProject: Highlights Planner App\nGoal: A mobile planning app designed to help students organize daily tasks, track progress, and celebrate learning milestones.'
+        info: 'Client: Highlights for Children\nProject: Highlights Planner App\nGoal: A mobile planning app designed to help students organize daily tasks, track progress, and celebrate learning milestones.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/c0c7ef188129255.6596e0a9e02ed.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/1d71e3188129255.6596e0a97421d.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/fecff1188129255.6596e0a9735de.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/5f7f24188129255.6596e0a975520.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/453c01188129255.6596e0a971b7a.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/146723188129255.6596e0a9728ff.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/9ec7d0188129255.6596e0a970fa2.png'
+        ]
       },
       {
         id: 'number-practice',
         name: 'Number Practice App',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/14d82c188128437.Y3JvcCwxMzA5LDEwMjQsMTAwLDA.png',
         url: 'https://www.behance.net/gallery/188128437/Number-Practice-Tablet-App',
-        info: 'Client: Educational Tech\nProject: Number Practice Tablet App\nGoal: Interactive tablet experience helping young children learn number recognition and basic math through play.'
+        info: 'Client: Educational Tech\nProject: Number Practice Tablet App\nGoal: Interactive tablet experience helping young children learn number recognition and basic math through play.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/de7340188128437.6596de99c4f16.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/87ce38188128437.6596de99bddea.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/cdd478188128437.6596de99c5c33.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/dca868188128437.6596de99c081a.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/b60dc7188128437.6596de99c2743.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/023592188128437.6596de99c16bb.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/ceebd0188128437.6596de99bfb2c.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/431d61188128437.6596de99bec56.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/bbf6c1188128437.6596de99c4196.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/fd8556188128437.6596de99c3536.png'
+        ]
       },
       {
         id: 'highlights-google',
         name: 'Highlights / Google',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/73ba18188126657.Y3JvcCwyNTY1LDIwMDYsMTU4LDEyMA.png',
         url: 'https://www.behance.net/gallery/188126657/HighlightsGoogle-Landing-Page',
-        info: 'Client: Highlights for Children × Google\nProject: Co-branded Landing Page\nGoal: A responsive landing page design for a Highlights and Google partnership campaign, emphasizing education and creativity.'
+        info: 'Client: Highlights for Children × Google\nProject: Co-branded Landing Page\nGoal: A responsive landing page design for a Highlights and Google partnership campaign, emphasizing education and creativity.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/c67df3188126657.6596da07e9c79.png'
+        ]
       },
       {
         id: 'scana',
         name: 'Scana Offline Storage',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/b23d83139587425.Y3JvcCw4MDgsNjMyLDAsMA.png',
         url: 'https://www.behance.net/gallery/139587425/Scana-Offline-Storage',
-        info: 'Client: Scana\nProject: Offline Storage App\nGoal: Product design for a secure offline storage solution with an intuitive file management interface built for non-technical users.'
+        info: 'Client: Scana\nProject: Offline Storage App\nGoal: Product design for a secure offline storage solution with an intuitive file management interface built for non-technical users.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/17cf50139587425.623228d12dff9.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp_webp/df817f139587425.62321cff0355e.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp_webp/0ae926139587425.623228d12d6fe.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/28bb81139587425.62322969c65ec.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/1649df139587425.62322969c6d18.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/69cf17139587425.62322969c5b02.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/ff1422139587425.62322969c71b3.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/8a48a4139587425.62322969c5fb4.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/7e9c61139587425.62322d8b09bf0.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/3f3467139587425.62322d8b0c614.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/0b1b13139587425.62322d8b0b155.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/abca8e139587425.62322d8b0cb51.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/d489f4139587425.62322d8b0ab11.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/b2a187139587425.62322d8b0b855.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/6b05df139587425.62322d8b0c049.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/ec30db139587425.62322d8b0a39f.png'
+        ]
       },
       {
         id: 'igs',
         name: 'IGS Revenue Operations',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/757ae1139581271.Y3JvcCw4MDgsNjMyLDAsMA.png',
         url: 'https://www.behance.net/gallery/139581271/IGS-Revenue-Operations',
-        info: 'Client: IGS Energy\nProject: Revenue Operations Dashboard\nGoal: Streamline the revenue operations workflow through a cohesive dashboard design that surfaces key KPIs and reduces context switching.'
+        info: 'Client: IGS Energy\nProject: Revenue Operations Dashboard\nGoal: Streamline the revenue operations workflow through a cohesive dashboard design that surfaces key KPIs and reduces context switching.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/1ffebb139581271.623214c8e4873.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/865c99139581271.623214c8e4f74.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/5005af139581271.623214c8e4154.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp_webp/0c8fa3139581271.62320b0a6baa3.png'
+        ]
       },
       {
         id: 'tread',
         name: 'Tread Flightly',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/7c5eef139155907.Y3JvcCw4MDgsNjMyLDAsMA.png',
         url: 'https://www.behance.net/gallery/139155907/Tread-Flightly',
-        info: 'Client: Tread Flightly\nProject: Brand & E-Commerce Experience\nGoal: Build a sustainable footwear brand with an e-commerce experience that communicates eco-friendly values and premium quality.'
+        info: 'Client: Tread Flightly\nProject: Brand & E-Commerce Experience\nGoal: Build a sustainable footwear brand with an e-commerce experience that communicates eco-friendly values and premium quality.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200_webp/7f49e0139155907.622a744ba62d2.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200_webp/098be3139155907.622a744ba6c9d.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200_webp/042b40139155907.622a744ba5a1d.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200_webp/a661e5139155907.622a744ba4d57.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200_webp/f9c5e0139155907.622a744ba673f.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp_webp/91c858139155907.622a744ba5263.png'
+        ]
       },
       {
         id: 'personal-ui',
         name: 'Personal UI Projects',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/4ff571111246695.Y3JvcCwxNDQwLDExMjYsMCw3NDQ1.png',
         url: 'https://www.behance.net/gallery/111246695/Personal-UI-Projects',
-        info: 'Client: Self-initiated\nProject: Personal UI Explorations\nGoal: A collection of personal interface design experiments exploring interaction patterns, visual styles, and emerging design trends.'
+        info: 'Client: Self-initiated\nProject: Personal UI Explorations\nGoal: A collection of personal interface design experiments exploring interaction patterns, visual styles, and emerging design trends.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/0b810f111246695.5ffe54486f146.png'
+        ]
       }
     ]
   },
@@ -766,21 +854,37 @@ const GALLERY = [
         name: 'Pistachios Packaging',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/44a1c6111249153.Y3JvcCw4NzEsNjgyLDc1LDA.png',
         url: 'https://www.behance.net/gallery/111249153/Pistachios-Package-Design',
-        info: 'Client: Self-initiated\nProject: Pistachios Package Design\nGoal: Premium pistachio snack packaging with bold typography, earthy illustration, and a strong shelf presence.'
+        info: 'Client: Self-initiated\nProject: Pistachios Package Design\nGoal: Premium pistachio snack packaging with bold typography, earthy illustration, and a strong shelf presence.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/ba7e82111249153.5ffe638f33328.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200_webp/fcffd5111249153.5ffe638f32abe.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400/4212d8111249153.5ffe638ec4605.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400/ee3e11111249153.5ffe638ec3ce7.png'
+        ]
       },
       {
         id: 'wedding',
         name: 'Wedding Invites',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/54f9aa111248759.Y3JvcCw5MDIsNzA1LDI0LDIwMA.png',
         url: 'https://www.behance.net/gallery/111248759/Wedding-Invites',
-        info: 'Client: Private\nProject: Custom Wedding Invitation Suite\nGoal: An elegant, timeless wedding invitation design featuring hand-lettered typography and delicate botanical motifs.'
+        info: 'Client: Private\nProject: Custom Wedding Invitation Suite\nGoal: An elegant, timeless wedding invitation design featuring hand-lettered typography and delicate botanical motifs.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp/f2f422111248759.5ffe61143fa60.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp/572b69111248759.5ffe61143ffa6.png'
+        ]
       },
       {
         id: 'washington',
         name: 'Washington Art Gallery',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/b92623111308297.Y3JvcCwxMzA5LDEwMjQsNjQsMA.png',
         url: 'https://www.behance.net/gallery/111308297/Washington-Art-Gallery',
-        info: 'Client: Washington Art Gallery\nProject: Brand Identity & Exhibition Design\nGoal: A sophisticated visual identity and exhibition materials reflecting the gallery\'s commitment to fine art and culture.'
+        info: 'Client: Washington Art Gallery\nProject: Brand Identity & Exhibition Design\nGoal: A sophisticated visual identity and exhibition materials reflecting the gallery\'s commitment to fine art and culture.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/5476cb111308297.5fff54d8674e6.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/591cb4111308297.5fff54d86673f.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200_webp/bc9e15111308297.5fff54d866df3.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp_webp/c6cd91111308297.5fff54d865fe3.png'
+        ]
       }
     ]
   },
@@ -793,7 +897,23 @@ const GALLERY = [
         name: 'Wallpapers Dump',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/efb956111248443.Y3JvcCwxMDEyLDc5MiwxMDUsMA.png',
         url: 'https://www.behance.net/gallery/111248443/Wallpapers-Dump',
-        info: 'Client: Self-initiated\nProject: Digital Illustration & Wallpapers\nGoal: A collection of digital illustrations exploring color, form, and narrative through abstract and figurative approaches.'
+        info: 'Client: Self-initiated\nProject: Digital Illustration & Wallpapers\nGoal: A collection of digital illustrations exploring color, form, and narrative through abstract and figurative approaches.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400/474a3b111248443.5ffe5f240073a.jpg',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400/c890b7111248443.5ffe5f23f22c5.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400/a30a37111248443.5ffe5f23f39e2.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400/04cf2f111248443.5ffe5f24001f1.jpg',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/58b59f111248443.5ffe5f23f2f78.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/897917111248443.5ffe5f23f2a12.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/656fcf111248443.5ffe5f2474091.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp/cd72ab111248443.5ffe5f235cb1c.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp/8ccd0e111248443.5ffe5f235dbd0.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp/e69574111248443.5ffe5f235d4b4.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp/693992111248443.5ffe5f235d015.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp/232bcd111248443.5ffe5f23f342d.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp/7a9643111248443.5ffe5f2475251.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/disp/6110db111248443.5ffe5f2474987.png'
+        ]
       }
     ]
   }
@@ -894,60 +1014,69 @@ function selectGalleryItem(fid, iid) {
 
   selectedItemId = iid;
   document.getElementById('info-text').textContent = item.info;
-  loadImage(item.thumb);
+  loadProject(item.images && item.images.length ? item.images : [item.thumb]);
 }
 
-function loadImage(src) {
+function loadProject(images) {
+  if (!images || !images.length) return;
+
   placeholder.style.display = 'none';
   projectImage.style.display = 'none';
-  drawCanvas.style.display   = 'none';
+  drawCanvas.style.display = 'none';
+  ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
 
-  // Use a fresh Image object to detect load success before committing to display
-  const probe = new Image();
-  probe.referrerPolicy = 'no-referrer';
+  // Create or reuse the image strip container
+  let strip = document.getElementById('project-strip');
+  if (!strip) {
+    strip = document.createElement('div');
+    strip.id = 'project-strip';
+    canvasInner.insertBefore(strip, drawCanvas);
+  }
+  strip.innerHTML = '';
 
-  probe.onload = () => {
-    const w = probe.naturalWidth  || 600;
-    const h = probe.naturalHeight || 400;
-    canvasInner.style.width  = w + 'px';
-    canvasInner.style.height = h + 'px';
-    drawCanvas.width  = w;
-    drawCanvas.height = h;
-    projectImage.style.width  = w + 'px';
-    projectImage.style.height = h + 'px';
-    projectImage.referrerPolicy = 'no-referrer';
-    projectImage.src = src;
-    projectImage.style.display = 'block';
-    drawCanvas.style.display   = 'block';
-    applyImageSettings();
+  let firstWidth = 0;
+  let pending = images.length;
+
+  const finalize = () => {
+    if (pending > 0) return;
+    // Let the browser render the strip, then size the draw-canvas to cover it
+    requestAnimationFrame(() => {
+      const w = strip.clientWidth  || firstWidth || 800;
+      const h = strip.scrollHeight || strip.clientHeight || 600;
+      canvasInner.style.height = h + 'px';
+      drawCanvas.width  = w;
+      drawCanvas.height = h;
+      drawCanvas.style.display = 'block';
+      applyImageSettings();
+    });
   };
-  probe.onerror = () => {
-    // Show canvas anyway so tools work — image just won't display
-    const w = 658, h = 500;
-    canvasInner.style.width  = w + 'px';
-    canvasInner.style.height = h + 'px';
-    drawCanvas.width  = w;
-    drawCanvas.height = h;
-    drawCanvas.style.display = 'block';
-    placeholder.style.display = 'none';
-    // Draw a subtle placeholder on the canvas
-    ctx.fillStyle = '#f0faf8';
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = 'rgba(40,43,51,0.15)';
-    ctx.font = '600 14px Jura, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Image blocked by browser — canvas ready for drawing', w/2, h/2);
-    ctx.textAlign = 'left';
-  };
-  probe.src = src;
+
+  images.forEach(src => {
+    const img = document.createElement('img');
+    img.referrerPolicy = 'no-referrer';
+    img.style.cssText = 'display:block;width:100%;height:auto;vertical-align:top;';
+    img.onload = () => {
+      if (!firstWidth) {
+        firstWidth = Math.min(img.naturalWidth || 800, 1400);
+        canvasInner.style.width = firstWidth + 'px';
+      }
+      pending--;
+      finalize();
+    };
+    img.onerror = () => { pending--; finalize(); };
+    img.src = src;
+    strip.appendChild(img);
+  });
 }
 
 // ================================================================
 // IMAGE SETTINGS
 // ================================================================
 function applyImageSettings() {
-  projectImage.style.opacity      = imageOpacity;
-  projectImage.style.mixBlendMode = imageBlend;
+  const strip = document.getElementById('project-strip');
+  const target = strip || projectImage;
+  target.style.opacity      = imageOpacity;
+  target.style.mixBlendMode = imageBlend;
 }
 
 // ================================================================
