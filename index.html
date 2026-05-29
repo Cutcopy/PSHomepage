@@ -961,6 +961,18 @@ function getPos(e) {
   };
 }
 
+// canvasInner handles text tool even when no image is loaded (draw-canvas is hidden)
+canvasInner.addEventListener('mousedown', e => {
+  if (activeTool !== 'text') return;
+  if (e.target === drawCanvas || drawCanvas.contains(e.target)) return; // handled below
+  const rect = canvasInner.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / canvasScale;
+  const y = (e.clientY - rect.top)  / canvasScale;
+  ensureCanvasReady();
+  placeText(x, y);
+  e.stopPropagation();
+});
+
 drawCanvas.addEventListener('mousedown', e => {
   const pos = getPos(e);
   if (activeTool === 'eyedropper') { pickColor(pos.x, pos.y); return; }
@@ -1092,6 +1104,18 @@ function floodFill(sx, sy) {
   ctx.putImageData(imgData, 0, 0);
 }
 
+// Ensure canvas has dimensions before drawing (for text tool use without an image)
+function ensureCanvasReady() {
+  if (drawCanvas.width > 0 && drawCanvas.height > 0) return;
+  const w = canvasInner.clientWidth  || 600;
+  const h = canvasInner.clientHeight || 500;
+  drawCanvas.width  = w;
+  drawCanvas.height = h;
+  canvasInner.style.width  = w + 'px';
+  canvasInner.style.height = h + 'px';
+  drawCanvas.style.display = 'block';
+}
+
 // Text tool
 let textFontSize = 20;
 let textBold = false;
@@ -1165,8 +1189,17 @@ function placeText(x, y) {
 
   el.addEventListener('blur', commit);
   el.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { el.removeEventListener('blur', commit); el.remove(); e.preventDefault(); }
     e.stopPropagation();
+    if (e.key === 'Escape') {
+      el.removeEventListener('blur', commit);
+      el.remove();
+      e.preventDefault();
+    } else if (e.key === 'Enter' && !e.shiftKey) {
+      // Enter commits; Shift+Enter inserts newline
+      e.preventDefault();
+      el.removeEventListener('blur', commit);
+      commit();
+    }
   });
 }
 
@@ -1563,7 +1596,16 @@ document.getElementById('swatch-bg').addEventListener('click', doSwap);
 // INIT
 // ================================================================
 renderGallery();
-requestAnimationFrame(() => { requestAnimationFrame(initColorPicker); });
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    initColorPicker();
+    // Pre-size the canvas so drawing tools work before an image is loaded
+    const w = canvasInner.clientWidth  || 600;
+    const h = canvasInner.clientHeight || 500;
+    drawCanvas.width  = w;
+    drawCanvas.height = h;
+  });
+});
 </script>
 </body>
 </html>
