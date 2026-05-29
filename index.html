@@ -185,62 +185,87 @@ a{text-decoration:none;color:inherit;}
 }
 
 /* Color panel */
-#color-panel{padding:10px;}
-.rgb-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+#color-panel{padding:0;}
+
+/* SV picker canvas */
+#sv-wrap{
+  position:relative;border-radius:4px;overflow:hidden;
+  cursor:crosshair;flex-shrink:0;
+}
+#sv-wrap canvas{display:block;width:100%;border-radius:4px;}
+#sv-cursor{
+  position:absolute;width:12px;height:12px;
+  border:2px solid white;border-radius:50%;
+  transform:translate(-50%,-50%);pointer-events:none;
+  box-shadow:0 0 0 1px rgba(0,0,0,0.4),0 1px 3px rgba(0,0,0,0.4);
+}
+
+/* Hue strip */
+#hue-wrap{
+  position:relative;height:14px;border-radius:7px;
+  border:1px solid rgba(40,43,51,0.3);
+  overflow:visible;cursor:crosshair;flex-shrink:0;
+}
+#hue-wrap canvas{
+  display:block;width:100%;height:14px;
+  border-radius:7px;
+}
+#hue-cursor-el{
+  position:absolute;top:50%;
+  width:10px;height:20px;
+  border:2px solid white;border-radius:5px;
+  transform:translate(-50%,-50%);pointer-events:none;
+  box-shadow:0 0 0 1px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.35);
+  background:white;
+}
+
+/* RGB rows */
+.rgb-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .rgb-label{
-  font-size:15.5px;font-weight:600;letter-spacing:1.6px;
-  flex-shrink:0;width:14px;text-align:center;
+  font-size:13px;font-weight:700;letter-spacing:1px;
+  flex-shrink:0;width:12px;text-align:center;color:#282b33;
 }
-.rgb-track{
-  flex:1;height:16px;border-radius:8px;
-  border:1px solid #282b33;position:relative;
-  overflow:visible;cursor:pointer;
-  box-shadow:inset 0 0 0.9px 0 rgba(0,0,0,0.1);
+.rgb-slider{
+  flex:1;height:6px;border-radius:3px;
+  -webkit-appearance:none;appearance:none;
+  cursor:pointer;outline:none;border:none;
+  /* background set via JS */
 }
-.rgb-track input[type=range]{
-  position:absolute;width:100%;height:100%;
-  opacity:0;cursor:pointer;margin:0;top:0;left:0;
+.rgb-slider::-webkit-slider-thumb{
   -webkit-appearance:none;
+  width:14px;height:14px;border-radius:50%;
+  background:white;border:2px solid #282b33;
+  box-shadow:0 1px 3px rgba(0,0,0,0.3);
+  cursor:pointer;
 }
-.rgb-thumb{
-  position:absolute;width:10px;height:21px;
-  border-radius:16px;border:1px solid white;
-  top:-3px;pointer-events:none;
-  background:radial-gradient(circle at 50% 35%, white, #ccc 50%, #999);
-  box-shadow:0 1px 3px rgba(0,0,0,0.35);
-  transform:translateX(-50%);
+.rgb-slider::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;
+  background:white;border:2px solid #282b33;
+  box-shadow:0 1px 3px rgba(0,0,0,0.3);cursor:pointer;
 }
-.rgb-val{
-  background:rgba(255,255,255,0.2);border:2px solid #282b33;
-  border-radius:23px;width:32px;height:16px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:9.6px;font-weight:700;flex-shrink:0;
+.rgb-num{
+  width:36px;height:22px;
+  background:rgba(255,255,255,0.3);
+  border:1.5px solid #282b33;border-radius:5px;
+  font-family:inherit;font-size:11px;font-weight:700;
+  text-align:center;color:#282b33;
+  -moz-appearance:textfield;
+  padding:0 2px;
 }
-.hue-track{
-  height:16px;border-radius:79px;
-  border:2px solid #282b33;position:relative;
-  overflow:visible;
-  background:linear-gradient(to right,
-    hsl(0,100%,50%),hsl(30,100%,50%),hsl(60,100%,50%),
-    hsl(90,100%,50%),hsl(120,100%,50%),hsl(150,100%,50%),
-    hsl(180,100%,50%),hsl(210,100%,50%),hsl(240,100%,50%),
-    hsl(270,100%,50%),hsl(300,100%,50%),hsl(330,100%,50%),hsl(360,100%,50%));
-  box-shadow:inset 0 0 0.9px 2px rgba(0,0,0,0.1);
-  cursor:pointer;margin-top:8px;
+.rgb-num::-webkit-inner-spin-button,
+.rgb-num::-webkit-outer-spin-button{-webkit-appearance:none;}
+.rgb-num:focus{outline:none;border-color:#39d3bd;}
+
+/* Hex input */
+.hex-row{display:flex;align-items:center;gap:8px;margin-top:2px;}
+.hex-field{
+  flex:1;height:22px;
+  background:rgba(255,255,255,0.3);
+  border:1.5px solid #282b33;border-radius:5px;
+  font-family:'Courier New',monospace;font-size:12px;font-weight:700;
+  color:#282b33;padding:0 6px;text-transform:uppercase;
 }
-.hue-track input[type=range]{
-  position:absolute;width:100%;height:100%;
-  opacity:0;cursor:pointer;margin:0;top:0;left:0;
-  -webkit-appearance:none;
-}
-.hue-thumb{
-  position:absolute;width:10px;height:21px;
-  border-radius:16px;border:1px solid white;
-  top:-5px;pointer-events:none;
-  background:radial-gradient(circle at 50% 35%, white, #ccc 50%, #999);
-  box-shadow:0 1px 3px rgba(0,0,0,0.35);
-  transform:translateX(-50%);
-}
+.hex-field:focus{outline:none;border-color:#39d3bd;}
 
 /* Info panel */
 #info-panel{padding:10px;}
@@ -509,34 +534,39 @@ a{text-decoration:none;color:inherit;}
           <div class="panel" id="color-panel">
             <div style="padding:10px;">
               <div class="panel-header">Color</div>
-              <div style="height:14px;"></div>
+              <div style="height:8px;"></div>
+              <!-- 2D Saturation/Brightness picker -->
+              <div id="sv-wrap">
+                <canvas id="sv-canvas"></canvas>
+                <div id="sv-cursor"></div>
+              </div>
+              <div style="height:6px;"></div>
+              <!-- Hue strip -->
+              <div id="hue-wrap">
+                <canvas id="hue-canvas"></canvas>
+                <div id="hue-cursor-el"></div>
+              </div>
+              <div style="height:10px;"></div>
+              <!-- RGB sliders -->
               <div class="rgb-row">
                 <span class="rgb-label">R</span>
-                <div class="rgb-track" id="r-track">
-                  <div class="rgb-thumb" id="r-thumb"></div>
-                  <input type="range" min="0" max="255" value="57" id="r-slider">
-                </div>
-                <div class="rgb-val" id="r-val">57</div>
+                <input type="range" class="rgb-slider" id="r-slider" min="0" max="255" value="57">
+                <input type="number" class="rgb-num" id="r-num" min="0" max="255" value="57">
               </div>
               <div class="rgb-row">
                 <span class="rgb-label">G</span>
-                <div class="rgb-track" id="g-track">
-                  <div class="rgb-thumb" id="g-thumb"></div>
-                  <input type="range" min="0" max="255" value="211" id="g-slider">
-                </div>
-                <div class="rgb-val" id="g-val">211</div>
+                <input type="range" class="rgb-slider" id="g-slider" min="0" max="255" value="211">
+                <input type="number" class="rgb-num" id="g-num" min="0" max="255" value="211">
               </div>
               <div class="rgb-row">
                 <span class="rgb-label">B</span>
-                <div class="rgb-track" id="b-track">
-                  <div class="rgb-thumb" id="b-thumb"></div>
-                  <input type="range" min="0" max="255" value="199" id="b-slider">
-                </div>
-                <div class="rgb-val" id="b-val">199</div>
+                <input type="range" class="rgb-slider" id="b-slider" min="0" max="255" value="199">
+                <input type="number" class="rgb-num" id="b-num" min="0" max="255" value="199">
               </div>
-              <div class="hue-track" id="hue-track">
-                <div class="hue-thumb" id="hue-thumb"></div>
-                <input type="range" min="0" max="360" value="173" id="hue-slider">
+              <!-- Hex input -->
+              <div class="hex-row">
+                <span class="rgb-label">#</span>
+                <input type="text" id="hex-input" class="hex-field" maxlength="6" spellcheck="false">
               </div>
             </div>
           </div>
@@ -1064,86 +1094,200 @@ function doZoom(delta) {
 }
 
 // ================================================================
-// COLOR CONTROLS
+// COLOR PICKER
 // ================================================================
-function updateColorFromRGB() {
-  drawColor.r = +document.getElementById('r-slider').value;
-  drawColor.g = +document.getElementById('g-slider').value;
-  drawColor.b = +document.getElementById('b-slider').value;
-  // Derive approximate hue for the hue slider
-  const mx = Math.max(drawColor.r, drawColor.g, drawColor.b);
-  const mn = Math.min(drawColor.r, drawColor.g, drawColor.b);
-  if (mx !== mn) {
-    const d = mx - mn;
-    let h = 0;
-    if (mx === drawColor.r) h = ((drawColor.g - drawColor.b) / d + 6) % 6;
-    else if (mx === drawColor.g) h = (drawColor.b - drawColor.r) / d + 2;
-    else h = (drawColor.r - drawColor.g) / d + 4;
-    hue = Math.round(h * 60);
-    document.getElementById('hue-slider').value = hue;
+let hsvState = { h: 173, s: 73, v: 83 }; // matches initial drawColor
+
+// -- Conversion helpers --
+function hsvToRgb(h, s, v) {
+  h = ((h % 360) + 360) % 360; s /= 100; v /= 100;
+  const f = n => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); };
+  return { r: Math.round(f(5)*255), g: Math.round(f(3)*255), b: Math.round(f(1)*255) };
+}
+function rgbToHsv(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b), d = max - min;
+  let h = 0;
+  if (d) {
+    if (max===r) h = ((g-b)/d % 6) * 60;
+    else if (max===g) h = ((b-r)/d + 2) * 60;
+    else h = ((r-g)/d + 4) * 60;
+    if (h < 0) h += 360;
   }
-  updateColorUI();
+  return { h: Math.round(h), s: Math.round(max ? d/max*100 : 0), v: Math.round(max*100) };
+}
+function rgbToHex(r, g, b) {
+  return [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+function hexToRgb(hex) {
+  hex = hex.replace('#','');
+  if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+  if (hex.length !== 6) return null;
+  const n = parseInt(hex, 16);
+  if (isNaN(n)) return null;
+  return { r: (n>>16)&255, g: (n>>8)&255, b: n&255 };
 }
 
-function updateColorFromHue() {
-  hue = +document.getElementById('hue-slider').value;
-  const rgb = hslToRgb(hue / 360, 1, 0.5);
-  drawColor = rgb;
-  document.getElementById('r-slider').value = rgb.r;
-  document.getElementById('g-slider').value = rgb.g;
-  document.getElementById('b-slider').value = rgb.b;
-  updateColorUI();
+// -- Canvas rendering --
+function drawSVCanvas() {
+  const canvas = document.getElementById('sv-canvas');
+  if (!canvas) return;
+  const ctx2 = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx2.fillStyle = `hsl(${hsvState.h},100%,50%)`;
+  ctx2.fillRect(0, 0, w, h);
+  const wg = ctx2.createLinearGradient(0, 0, w, 0);
+  wg.addColorStop(0, 'rgba(255,255,255,1)');
+  wg.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx2.fillStyle = wg; ctx2.fillRect(0, 0, w, h);
+  const bg = ctx2.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, 'rgba(0,0,0,0)');
+  bg.addColorStop(1, 'rgba(0,0,0,1)');
+  ctx2.fillStyle = bg; ctx2.fillRect(0, 0, w, h);
 }
 
-function updateColorUI() {
-  const { r, g, b } = drawColor;
-  document.getElementById('r-val').textContent = r;
-  document.getElementById('g-val').textContent = g;
-  document.getElementById('b-val').textContent = b;
-
-  document.getElementById('r-track').style.background =
-    `linear-gradient(to right,rgb(0,${g},${b}),rgb(255,${g},${b}))`;
-  document.getElementById('g-track').style.background =
-    `linear-gradient(to right,rgb(${r},0,${b}),rgb(${r},255,${b}))`;
-  document.getElementById('b-track').style.background =
-    `linear-gradient(to right,rgb(${r},${g},0),rgb(${r},${g},255))`;
-
-  setThumb('r-thumb', 'r-track', r / 255);
-  setThumb('g-thumb', 'g-track', g / 255);
-  setThumb('b-thumb', 'b-track', b / 255);
-  setThumb('hue-thumb', 'hue-track', hue / 360);
-
-  document.getElementById('swatch-fg').style.background = `rgb(${r},${g},${b})`;
+function drawHueCanvas() {
+  const canvas = document.getElementById('hue-canvas');
+  if (!canvas) return;
+  const ctx2 = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const grad = ctx2.createLinearGradient(0, 0, w, 0);
+  for (let i = 0; i <= 360; i += 30) grad.addColorStop(i/360, `hsl(${i},100%,50%)`);
+  ctx2.fillStyle = grad; ctx2.fillRect(0, 0, w, h);
 }
 
-function setThumb(thumbId, trackId, frac) {
-  const track = document.getElementById(trackId);
-  const w = track.clientWidth;
-  document.getElementById(thumbId).style.left = (frac * (w - 10) + 5) + 'px';
+function updateCursors() {
+  const svCanvas = document.getElementById('sv-canvas');
+  const svCursor = document.getElementById('sv-cursor');
+  const hueWrap  = document.getElementById('hue-wrap');
+  const hueCursor = document.getElementById('hue-cursor-el');
+  if (svCanvas && svCursor) {
+    svCursor.style.left = (hsvState.s / 100 * svCanvas.width) + 'px';
+    svCursor.style.top  = ((1 - hsvState.v / 100) * svCanvas.height) + 'px';
+  }
+  if (hueWrap && hueCursor) {
+    hueCursor.style.left = (hsvState.h / 360 * hueWrap.clientWidth) + 'px';
+  }
 }
 
-function hslToRgb(h, s, l) {
-  const hue2 = (p, q, t) => {
-    if (t<0) t+=1; if (t>1) t-=1;
-    if (t<1/6) return p+(q-p)*6*t;
-    if (t<1/2) return q;
-    if (t<2/3) return p+(q-p)*(2/3-t)*6;
-    return p;
-  };
-  if (s === 0) { const v = Math.round(l*255); return {r:v,g:v,b:v}; }
-  const q = l<0.5 ? l*(1+s) : l+s-l*s;
-  const p = 2*l - q;
-  return {
-    r: Math.round(hue2(p,q,h+1/3)*255),
-    g: Math.round(hue2(p,q,h)*255),
-    b: Math.round(hue2(p,q,h-1/3)*255)
-  };
+// -- Central update: apply a new drawColor and sync all UI --
+function applyColor(r, g, b, updateHSV = true) {
+  drawColor = { r: Math.round(Math.max(0,Math.min(255,r))),
+                g: Math.round(Math.max(0,Math.min(255,g))),
+                b: Math.round(Math.max(0,Math.min(255,b))) };
+  if (updateHSV) hsvState = rgbToHsv(drawColor.r, drawColor.g, drawColor.b);
+
+  // Sliders + number inputs
+  ['r','g','b'].forEach(ch => {
+    const s = document.getElementById(`${ch}-slider`);
+    const n = document.getElementById(`${ch}-num`);
+    if (s) s.value = drawColor[ch];
+    if (n) n.value = drawColor[ch];
+    // Update slider gradient track
+    const { r: dr, g: dg, b: db } = drawColor;
+    const grad = ch === 'r' ? `linear-gradient(to right,rgb(0,${dg},${db}),rgb(255,${dg},${db}))`
+               : ch === 'g' ? `linear-gradient(to right,rgb(${dr},0,${db}),rgb(${dr},255,${db}))`
+               :               `linear-gradient(to right,rgb(${dr},${dg},0),rgb(${dr},${dg},255))`;
+    if (s) s.style.background = grad;
+  });
+
+  // Hex
+  const hexEl = document.getElementById('hex-input');
+  if (hexEl && document.activeElement !== hexEl)
+    hexEl.value = rgbToHex(drawColor.r, drawColor.g, drawColor.b);
+
+  // Swatch
+  document.getElementById('swatch-fg').style.background =
+    `rgb(${drawColor.r},${drawColor.g},${drawColor.b})`;
+
+  // Redraw SV canvas if hue changed
+  drawSVCanvas();
+  updateCursors();
 }
 
-['r','g','b'].forEach(ch => {
-  document.getElementById(`${ch}-slider`).addEventListener('input', updateColorFromRGB);
-});
-document.getElementById('hue-slider').addEventListener('input', updateColorFromHue);
+// -- Picker interaction helpers --
+function pickFromSV(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.max(0, Math.min((e.clientX - rect.left), rect.width));
+  const y = Math.max(0, Math.min((e.clientY - rect.top), rect.height));
+  hsvState.s = x / rect.width * 100;
+  hsvState.v = (1 - y / rect.height) * 100;
+  const rgb = hsvToRgb(hsvState.h, hsvState.s, hsvState.v);
+  applyColor(rgb.r, rgb.g, rgb.b, false);
+}
+function pickFromHue(e, el) {
+  const rect = el.getBoundingClientRect();
+  const x = Math.max(0, Math.min((e.clientX - rect.left), rect.width));
+  hsvState.h = x / rect.width * 360;
+  const rgb = hsvToRgb(hsvState.h, hsvState.s, hsvState.v);
+  applyColor(rgb.r, rgb.g, rgb.b, false);
+  drawSVCanvas();
+}
+
+function makeDraggable(el, onMove) {
+  el.addEventListener('mousedown', e => {
+    onMove(e);
+    const mv = ev => onMove(ev);
+    const up = () => { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); };
+    document.addEventListener('mousemove', mv);
+    document.addEventListener('mouseup', up);
+    e.preventDefault();
+  });
+}
+
+// -- Init color picker (called after layout) --
+function initColorPicker() {
+  const panel = document.getElementById('color-panel');
+  const svWrap = document.getElementById('sv-wrap');
+  const svCanvas = document.getElementById('sv-canvas');
+  const hueWrap  = document.getElementById('hue-wrap');
+  const hueCanvas = document.getElementById('hue-canvas');
+  if (!svCanvas || !hueCanvas) return;
+
+  const pw = panel.clientWidth - 20; // panel padding 10px each side
+  svCanvas.width  = pw;
+  svCanvas.height = Math.round(pw * 0.56);
+  hueCanvas.width  = pw;
+  hueCanvas.height = 14;
+
+  drawSVCanvas();
+  drawHueCanvas();
+
+  makeDraggable(svWrap,   e => pickFromSV(e, svCanvas));
+  makeDraggable(hueWrap,  e => pickFromHue(e, hueWrap));
+
+  // RGB sliders
+  ['r','g','b'].forEach(ch => {
+    const s = document.getElementById(`${ch}-slider`);
+    const n = document.getElementById(`${ch}-num`);
+    s.addEventListener('input', () => {
+      drawColor[ch] = +s.value;
+      applyColor(drawColor.r, drawColor.g, drawColor.b);
+    });
+    n.addEventListener('change', () => {
+      const val = Math.max(0, Math.min(255, +n.value || 0));
+      n.value = val;
+      drawColor[ch] = val;
+      applyColor(drawColor.r, drawColor.g, drawColor.b);
+    });
+    n.addEventListener('input', () => {
+      const val = +n.value;
+      if (val >= 0 && val <= 255) { drawColor[ch] = val; applyColor(drawColor.r, drawColor.g, drawColor.b); }
+    });
+  });
+
+  // Hex input
+  const hexEl = document.getElementById('hex-input');
+  hexEl.addEventListener('change', () => {
+    const rgb = hexToRgb(hexEl.value);
+    if (rgb) applyColor(rgb.r, rgb.g, rgb.b);
+    else hexEl.value = rgbToHex(drawColor.r, drawColor.g, drawColor.b);
+  });
+  hexEl.addEventListener('keydown', e => { if (e.key === 'Enter') hexEl.blur(); });
+
+  // Apply initial color
+  applyColor(drawColor.r, drawColor.g, drawColor.b);
+}
 
 // ================================================================
 // TOOLBAR
@@ -1294,11 +1438,8 @@ canvasContainer.addEventListener('wheel', e => {
 // ================================================================
 function doSwap() {
   [drawColor, bgColor] = [bgColor, drawColor];
-  document.getElementById('r-slider').value = drawColor.r;
-  document.getElementById('g-slider').value = drawColor.g;
-  document.getElementById('b-slider').value = drawColor.b;
-  updateColorUI();
   document.getElementById('swatch-bg').style.background = `rgb(${bgColor.r},${bgColor.g},${bgColor.b})`;
+  applyColor(drawColor.r, drawColor.g, drawColor.b);
 }
 document.getElementById('swatch-swap').addEventListener('click', doSwap);
 document.getElementById('swatch-fg').addEventListener('click', doSwap);
@@ -1308,8 +1449,7 @@ document.getElementById('swatch-bg').addEventListener('click', doSwap);
 // INIT
 // ================================================================
 renderGallery();
-// Defer thumb placement until layout is ready
-requestAnimationFrame(() => { requestAnimationFrame(updateColorUI); });
+requestAnimationFrame(() => { requestAnimationFrame(initColorPicker); });
 </script>
 </body>
 </html>
