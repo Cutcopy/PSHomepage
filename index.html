@@ -1801,27 +1801,54 @@ document.querySelectorAll('#blend-dd .work-dd-item').forEach(item => {
 
 // ================================================================
 // SCREENSHOT
+// Reloads project images via images.weserv.nl (CORS proxy) so they
+// can be composited with the annotation layer into one flat PNG.
 // ================================================================
 function takeScreenshot() {
   if (!drawCanvas.width) { alert('Load a project image first.'); return; }
+
+  const strip  = document.getElementById('project-strip');
+  const imgEls = strip ? [...strip.querySelectorAll('img')].filter(i => i.naturalWidth > 0) : [];
+  const cW = drawCanvas.width, cH = drawCanvas.height;
+
   const tmp = document.createElement('canvas');
-  tmp.width = drawCanvas.width; tmp.height = drawCanvas.height;
+  tmp.width = cW; tmp.height = cH;
   const t = tmp.getContext('2d');
   t.fillStyle = 'white';
-  t.fillRect(0, 0, tmp.width, tmp.height);
-  try {
-    t.globalAlpha = imageOpacity;
-    t.globalCompositeOperation = imageBlend === 'normal' ? 'source-over' : imageBlend;
-    t.drawImage(projectImage, 0, 0);
+  t.fillRect(0, 0, cW, cH);
+
+  function finish() {
     t.globalAlpha = 1;
     t.globalCompositeOperation = 'source-over';
-  } catch(e) {}
-  t.drawImage(drawCanvas, 0, 0);
-  const item = GALLERY.flatMap(f => f.items).find(i => i.id === selectedItemId);
-  const link = document.createElement('a');
-  link.download = (item ? item.name.replace(/\s+/g,'-') : 'canvas') + '.png';
-  link.href = tmp.toDataURL('image/png');
-  link.click();
+    t.drawImage(drawCanvas, 0, 0);
+    const found = GALLERY.flatMap(f => f.items).find(i => i.id === selectedItemId);
+    const link = document.createElement('a');
+    link.download = (found ? found.name.replace(/\s+/g, '-') : 'canvas') + '.png';
+    link.href = tmp.toDataURL('image/png');
+    link.click();
+  }
+
+  if (!imgEls.length) { finish(); return; }
+
+  const heights = imgEls.map(img => Math.round(img.naturalHeight * cW / img.naturalWidth));
+  let pending = imgEls.length;
+
+  imgEls.forEach((img, i) => {
+    const yPos = heights.slice(0, i).reduce((a, b) => a + b, 0);
+    const proxy = new Image();
+    proxy.crossOrigin = 'anonymous';
+    proxy.onload = () => {
+      t.save();
+      t.globalAlpha = imageOpacity;
+      t.globalCompositeOperation = imageBlend === 'normal' ? 'source-over' : imageBlend;
+      t.drawImage(proxy, 0, yPos, cW, heights[i]);
+      t.restore();
+      if (--pending === 0) finish();
+    };
+    proxy.onerror = () => { if (--pending === 0) finish(); };
+    // images.weserv.nl proxies any public image URL with CORS headers
+    proxy.src = 'https://images.weserv.nl/?url=' + encodeURIComponent(img.src);
+  });
 }
 
 // ================================================================
