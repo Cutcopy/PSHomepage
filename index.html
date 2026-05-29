@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bryce Stradling</title>
+<link href="https://fonts.googleapis.com/css2?family=Jura:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Jura',sans-serif;background:#67dbca;color:#282b33;}
+button{font-family:inherit;border:none;background:none;cursor:pointer;}
+a{text-decoration:none;color:inherit;}
+
+/* ===== ROOT LAYOUT ===== */
+#app{display:flex;flex-direction:column;height:100vh;}
+#top-content{display:flex;flex:1;overflow:hidden;min-height:0;}
+
+/* ===== LEFT SIDEBAR ===== */
+#left-sidebar{
+  width:116px;min-width:116px;
+  background:#b1eee5;
+  border-right:2px solid white;
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;overflow:hidden;flex-shrink:0;
+}
+.logo{width:71px;height:81px;margin:20px auto 0;flex-shrink:0;}
+.logo img{width:100%;height:100%;object-fit:contain;}
+
+.toolbar-grid{
+  display:grid;
+  grid-template-columns:repeat(2,39px);
+  grid-auto-rows:39px;
+  gap:8px 9px;
+  margin-top:30px;
+  flex-shrink:0;
+}
+.tool-btn{
+  width:39px;height:39px;
+  border:1px solid #282b33;border-radius:5px;
+  background:rgba(255,255,255,0.2);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 0 0.9px 2px rgba(0,0,0,0.1);
+  transition:background 0.12s;
+  position:relative;
+}
+.tool-btn:hover{background:rgba(255,255,255,0.45);}
+.tool-btn.highlighted{background:rgba(255,255,255,0.5);}
+.tool-btn.selected{background:#5cd9c7;}
+.tool-btn img{width:17px;height:17px;object-fit:contain;pointer-events:none;}
+
+.color-swatches{
+  width:64px;height:58px;
+  margin-top:14px;
+  align-self:center;
+  flex-shrink:0;
+  position:relative;
+}
+/* Background swatch — bottom-right, behind */
+.swatch-bg{
+  position:absolute;bottom:0;right:0;
+  width:38px;height:38px;
+  border:1.5px solid #262931;border-radius:3px;
+  background:white;
+  box-shadow:inset 0 0 0.9px 2px rgba(0,0,0,0.1);
+  cursor:pointer;z-index:1;
+}
+/* Foreground swatch — top-left, in front */
+.swatch-fg{
+  position:absolute;top:0;left:0;
+  width:38px;height:38px;
+  border:1.5px solid #262931;border-radius:3px;
+  box-shadow:inset 0 0 0.9px 2px rgba(0,0,0,0.1);
+  cursor:pointer;z-index:2;
+}
+/* Swap arrows — top-right corner */
+.swatch-swap{
+  position:absolute;top:0;right:0;
+  width:16px;height:16px;cursor:pointer;z-index:3;
+}
+.swatch-swap img{width:100%;height:100%;}
+
+.social-icons{
+  margin-top:auto;
+  margin-bottom:20px;
+  display:flex;flex-direction:column;gap:8px;align-items:center;
+}
+.social-icon{width:32px;height:32px;display:block;transition:opacity 0.15s;}
+.social-icon:hover{opacity:0.7;}
+.social-icon img{width:100%;height:100%;}
+
+/* ===== CENTER + RIGHT ===== */
+#center-right{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;
+}
+
+/* ===== TOPBAR ===== */
+#topbar{
+  height:32px;flex-shrink:0;
+  display:flex;align-items:center;gap:2px;
+  padding-left:4px;
+  position:relative;z-index:20;
+}
+.menu-item{
+  padding:5px 10px;height:27px;
+  font-size:12px;font-weight:700;
+  cursor:pointer;border-radius:5px;color:#282b33;
+  display:flex;align-items:center;
+  position:relative;user-select:none;
+}
+.menu-item:hover,.menu-item.open{background:rgba(255,255,255,0.5);}
+
+/* FILE dropdown */
+#file-menu{position:relative;}
+#file-dropdown{
+  position:absolute;top:calc(100% + 2px);left:0;
+  background:rgba(255,255,255,0.5);backdrop-filter:blur(4px);
+  border:1px solid white;border-radius:5px;
+  box-shadow:0 0 5px rgba(0,0,0,0.25);
+  padding:5px;z-index:100;
+  display:flex;flex-direction:column;gap:3px;min-width:90px;
+}
+#file-dropdown.hidden{display:none;}
+.dd-item{
+  padding:5px 10px;font-size:12px;font-weight:700;
+  cursor:pointer;border-radius:5px;color:#282b33;
+}
+.dd-item:hover{background:rgba(255,255,255,0.5);}
+.dd-item.active{background:rgba(255,255,255,0.5);}
+
+/* ===== WORKSPACE ===== */
+#workspace{flex:1;display:flex;overflow:hidden;min-height:0;}
+
+/* ===== CANVAS AREA ===== */
+#canvas-container{
+  flex:1;overflow:auto;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:20px;background:#67dbca;
+  min-width:0;
+}
+#canvas-inner{
+  position:relative;
+  border-radius:5px;
+  box-shadow:0 0 8.8px rgba(40,43,51,0.5);
+  background:white;
+  min-width:200px;min-height:200px;
+  transform-origin:top center;
+  flex-shrink:0;
+}
+#project-image{
+  display:block;max-width:100%;position:relative;z-index:1;
+  transition:opacity 0.2s;
+}
+#draw-canvas{
+  position:absolute;top:0;left:0;z-index:2;
+}
+#canvas-placeholder{
+  width:600px;height:500px;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:12px;
+  color:rgba(40,43,51,0.3);font-size:14px;font-weight:600;
+}
+
+/* ===== RIGHT SIDEBAR ===== */
+#right-sidebar{
+  width:297px;min-width:297px;flex-shrink:0;
+  display:flex;flex-direction:column;gap:10px;
+  padding:7px 7px 7px 0;
+  overflow-y:auto;
+}
+.panel{
+  background:#b1eee5;
+  border:2px solid white;border-radius:5px;
+  box-shadow:0 0 5px rgba(0,0,0,0.25);
+  overflow:hidden;flex-shrink:0;
+}
+.panel-header{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.5);
+  border-radius:36px;padding:5px 20px;
+  font-size:15px;font-weight:700;height:25px;
+  white-space:nowrap;
+}
+
+/* Color panel */
+#color-panel{padding:10px;}
+.rgb-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.rgb-label{
+  font-size:15.5px;font-weight:600;letter-spacing:1.6px;
+  flex-shrink:0;width:14px;text-align:center;
+}
+.rgb-track{
+  flex:1;height:16px;border-radius:8px;
+  border:1px solid #282b33;position:relative;
+  overflow:visible;cursor:pointer;
+  box-shadow:inset 0 0 0.9px 0 rgba(0,0,0,0.1);
+}
+.rgb-track input[type=range]{
+  position:absolute;width:100%;height:100%;
+  opacity:0;cursor:pointer;margin:0;top:0;left:0;
+  -webkit-appearance:none;
+}
+.rgb-thumb{
+  position:absolute;width:10px;height:21px;
+  border-radius:16px;border:1px solid white;
+  top:-3px;pointer-events:none;
+  background:radial-gradient(circle at 50% 35%, white, #ccc 50%, #999);
+  box-shadow:0 1px 3px rgba(0,0,0,0.35);
+  transform:translateX(-50%);
+}
+.rgb-val{
+  background:rgba(255,255,255,0.2);border:2px solid #282b33;
+  border-radius:23px;width:32px;height:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9.6px;font-weight:700;flex-shrink:0;
+}
+.hue-track{
+  height:16px;border-radius:79px;
+  border:2px solid #282b33;position:relative;
+  overflow:visible;
+  background:linear-gradient(to right,
+    hsl(0,100%,50%),hsl(30,100%,50%),hsl(60,100%,50%),
+    hsl(90,100%,50%),hsl(120,100%,50%),hsl(150,100%,50%),
+    hsl(180,100%,50%),hsl(210,100%,50%),hsl(240,100%,50%),
+    hsl(270,100%,50%),hsl(300,100%,50%),hsl(330,100%,50%),hsl(360,100%,50%));
+  box-shadow:inset 0 0 0.9px 2px rgba(0,0,0,0.1);
+  cursor:pointer;margin-top:8px;
+}
+.hue-track input[type=range]{
+  position:absolute;width:100%;height:100%;
+  opacity:0;cursor:pointer;margin:0;top:0;left:0;
+  -webkit-appearance:none;
+}
+.hue-thumb{
+  position:absolute;width:10px;height:21px;
+  border-radius:16px;border:1px solid white;
+  top:-5px;pointer-events:none;
+  background:radial-gradient(circle at 50% 35%, white, #ccc 50%, #999);
+  box-shadow:0 1px 3px rgba(0,0,0,0.35);
+  transform:translateX(-50%);
+}
+
+/* Info panel */
+#info-panel{padding:10px;}
+#info-text{
+  font-size:13px;font-weight:700;line-height:1.6;
+  color:#282b33;white-space:pre-wrap;margin-top:10px;
+}
+
+/* Work panel */
+#work-panel{padding:8px;}
+.work-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:4px;}
+.work-ctrl{
+  background:rgba(255,255,255,0.2);border:2px solid #282b33;
+  border-radius:36px;padding:0 8px;height:25px;
+  display:flex;align-items:center;gap:4px;
+  font-size:12px;font-weight:700;cursor:pointer;
+  position:relative;flex-shrink:0;user-select:none;
+}
+.work-ctrl:hover{background:rgba(255,255,255,0.35);}
+.work-ctrl .ic{width:13px;height:13px;flex-shrink:0;}
+.work-ctrl .chev{width:5px;height:5px;flex-shrink:0;}
+.work-dd{
+  position:absolute;top:calc(100% + 2px);left:0;
+  background:#b1eee5;border:1px solid #282b33;
+  border-radius:5px;z-index:50;
+  min-width:100%;max-height:220px;overflow-y:auto;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  display:none;
+}
+.work-dd.open{display:block;}
+.work-dd-item{
+  padding:5px 12px;font-size:12px;font-weight:700;
+  cursor:pointer;white-space:nowrap;
+}
+.work-dd-item:hover{background:rgba(255,255,255,0.4);}
+.work-dd-item.active{background:rgba(255,255,255,0.5);}
+
+/* Gallery */
+#gallery-list{
+  border:1px solid #282b33;border-radius:5px;
+  overflow-y:auto;max-height:380px;
+}
+.g-folder{}
+.g-folder-hd{
+  height:55px;display:flex;align-items:center;
+  background:rgba(255,255,255,0.2);
+  border-bottom:1px solid rgba(40,43,51,0.4);
+  cursor:pointer;
+}
+.g-folder-hd:hover{background:rgba(255,255,255,0.35);}
+.g-icon-cell{
+  width:36px;height:55px;border-right:1px solid #282b33;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.g-icon-wrap{
+  width:28px;height:28px;background:#b1eee5;
+  border:1px solid #282b33;border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+}
+.g-icon-wrap img{width:18px;height:18px;object-fit:contain;}
+.g-chev-cell{width:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.g-chev{width:12px;height:12px;transition:transform 0.2s;flex-shrink:0;}
+.g-chev.open{transform:rotate(90deg);}
+.g-folder-name{flex:1;font-size:15px;font-weight:500;padding-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.g-folder-items{display:none;}
+.g-folder.open .g-folder-items{display:block;}
+.g-item{
+  height:55px;display:flex;align-items:center;
+  border-bottom:1px solid rgba(40,43,51,0.25);
+  cursor:pointer;background:rgba(255,255,255,0.2);
+  position:relative;overflow:hidden;
+}
+.g-item:hover{background:rgba(255,255,255,0.38);}
+.g-item.selected{background:#39d3bd;}
+.g-vis-cell{
+  width:36px;height:55px;border-right:1px solid #282b33;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.g-vis-wrap{
+  width:28px;height:28px;background:#b1eee5;
+  border:1px solid #282b33;border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+}
+.g-vis-icon{width:16px;height:16px;object-fit:contain;}
+.g-thumb{width:54px;height:55px;overflow:hidden;flex-shrink:0;}
+.g-thumb img{width:100%;height:100%;object-fit:cover;}
+.g-name{flex:1;font-size:14px;font-weight:500;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ===== FOOTER ===== */
+#footer{
+  height:25px;flex-shrink:0;
+  display:flex;border-top:1px solid white;
+}
+#zoom-indicator{
+  background:#b1eee5;border-right:1px solid white;
+  height:25px;min-width:112px;
+  display:flex;align-items:center;gap:6px;
+  padding:0 12px;font-size:14px;font-weight:300;
+  cursor:pointer;flex-shrink:0;
+}
+#zoom-indicator img{width:14px;height:14px;}
+#copyright{
+  background:#b1eee5;flex:1;height:25px;
+  display:flex;align-items:center;padding:0 8px;
+  font-size:13px;font-weight:600;letter-spacing:1.6px;
+}
+
+/* ===== MODALS ===== */
+.modal-ov{
+  position:fixed;inset:0;
+  background:rgba(40,43,51,0.5);
+  z-index:200;display:flex;align-items:center;justify-content:center;
+}
+.modal-ov.hidden{display:none;}
+.modal-box{
+  background:white;border-radius:5px;
+  box-shadow:0 0 20px rgba(40,43,51,0.4);
+  padding:30px;max-width:480px;width:90%;
+  position:relative;max-height:90vh;overflow-y:auto;
+}
+.modal-close{
+  position:absolute;top:10px;right:14px;
+  font-size:22px;cursor:pointer;color:#282b33;
+  line-height:1;background:none;border:none;
+  font-family:inherit;
+}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:15px;}
+.modal-body{font-size:14px;line-height:1.6;}
+.form-group{margin-bottom:15px;}
+.form-group label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
+.form-group input,.form-group textarea{
+  width:100%;padding:8px 12px;
+  border:1px solid #282b33;border-radius:5px;
+  font-family:inherit;font-size:13px;
+  background:#f8fffe;color:#282b33;outline:none;
+}
+.form-group input:focus,.form-group textarea:focus{border-color:#39d3bd;}
+.form-group textarea{height:100px;resize:vertical;}
+.btn-submit{
+  background:#39d3bd;border:2px solid #282b33;
+  border-radius:36px;padding:8px 24px;
+  font-family:inherit;font-size:13px;font-weight:700;
+  cursor:pointer;color:#282b33;transition:background 0.15s;
+}
+.btn-submit:hover{background:#5cd9c7;}
+
+/* ===== CURSOR STATES ===== */
+.tool-move #draw-canvas,.tool-hand #draw-canvas{cursor:grab;}
+.tool-move #draw-canvas:active,.tool-hand #draw-canvas:active{cursor:grabbing;}
+.tool-zoom #draw-canvas{cursor:zoom-in;}
+.tool-eyedropper #draw-canvas{cursor:crosshair;}
+.tool-eraser #draw-canvas{cursor:cell;}
+.tool-text #draw-canvas{cursor:text;}
+.tool-fill #draw-canvas{cursor:copy;}
+
+/* ===== SCROLLBARS ===== */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:rgba(255,255,255,0.2);}
+::-webkit-scrollbar-thumb{background:rgba(40,43,51,0.3);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(40,43,51,0.5);}
+</style>
+</head>
+<body class="tool-brush">
+
+<div id="app">
+
+  <!-- ===== ABOUT MODAL ===== -->
+  <div id="about-modal" class="modal-ov hidden">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('about-modal')">×</button>
+      <div class="modal-title">About</div>
+      <div class="modal-body" id="about-content"></div>
+    </div>
+  </div>
+
+  <!-- ===== CONTACT MODAL ===== -->
+  <div id="contact-modal" class="modal-ov hidden">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('contact-modal')">×</button>
+      <div class="modal-title">Contact</div>
+      <div id="contact-body">
+        <form id="contact-form" class="modal-body" onsubmit="submitContact(event)">
+          <div class="form-group"><label>Name</label><input type="text" name="name" required placeholder="Your name"></div>
+          <div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="your@email.com"></div>
+          <div class="form-group"><label>Message</label><textarea name="message" required placeholder="Say hello…"></textarea></div>
+          <button type="submit" class="btn-submit">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOP CONTENT ===== -->
+  <div id="top-content">
+
+    <!-- LEFT SIDEBAR -->
+    <aside id="left-sidebar">
+      <div class="logo"><img src="Assets/Bryce Logo.svg" alt="Bryce Stradling"></div>
+
+      <div class="toolbar-grid" id="toolbar-grid">
+        <button class="tool-btn" data-tool="move"       title="Move">       <img src="Assets/Move.svg"          alt="Move"></button>
+        <button class="tool-btn" data-tool="zoom"       title="Zoom">       <img src="Assets/Zoom.svg"          alt="Zoom"></button>
+        <button class="tool-btn" data-tool="hand"       title="Hand">       <img src="Assets/handtool.svg"      alt="Hand"></button>
+        <button class="tool-btn" data-tool="ellipse"    title="Ellipse">    <img src="Assets/Ellipsetool.svg"   alt="Ellipse"></button>
+        <button class="tool-btn" data-tool="rectangle"  title="Rectangle">  <img src="Assets/Rectangletool.svg" alt="Rectangle"></button>
+        <button class="tool-btn" data-tool="polygon"    title="Polygon">    <img src="Assets/Polygon tool.svg"  alt="Polygon"></button>
+        <button class="tool-btn highlighted" data-tool="text"      title="Text">       <img src="Assets/TypeTool.svg"      alt="Text"></button>
+        <button class="tool-btn selected"    data-tool="brush"     title="Brush">      <img src="Assets/BrushTool.svg"     alt="Brush"></button>
+        <button class="tool-btn" data-tool="eyedropper" title="Eyedropper"> <img src="Assets/EyedropperTool.svg" alt="Eyedropper"></button>
+        <button class="tool-btn" data-tool="eraser"     title="Eraser">     <img src="Assets/Eraser.svg"        alt="Eraser"></button>
+        <button class="tool-btn" data-tool="fill"       title="Fill">       <img src="Assets/PainBucketTool.svg" alt="Fill"></button>
+        <button class="tool-btn" data-tool="pen"        title="Pen">        <img src="Assets/PenTool.svg"       alt="Pen"></button>
+      </div>
+
+      <div class="color-swatches">
+        <div class="swatch-swap" id="swatch-swap"><img src="Assets/SwatchSwitcher.svg" alt="Swap"></div>
+        <div class="swatch-fg" id="swatch-fg"></div>
+        <div class="swatch-bg" id="swatch-bg"></div>
+      </div>
+
+      <div class="social-icons">
+        <a class="social-icon" href="https://www.instagram.com/brycestradling" target="_blank"><img src="Assets/InstagramIcon.svg" alt="Instagram"></a>
+        <a class="social-icon" href="https://www.linkedin.com/in/brycestradling" target="_blank"><img src="Assets/linkdedinIcon.svg" alt="LinkedIn"></a>
+        <a class="social-icon" href="https://www.behance.net/brycestradling" target="_blank"><img src="Assets/BehanceIcon.svg" alt="Behance"></a>
+      </div>
+    </aside>
+
+    <!-- CENTER + RIGHT -->
+    <div id="center-right">
+
+      <!-- TOPBAR -->
+      <nav id="topbar">
+        <div class="menu-item" id="file-menu">
+          FILE
+          <div id="file-dropdown" class="hidden">
+            <div class="dd-item active" id="reset-btn">Reset</div>
+            <div class="dd-item" id="screenshot-btn">Screenshot</div>
+          </div>
+        </div>
+        <div class="menu-item" id="about-btn">About</div>
+        <div class="menu-item" id="contact-btn">Contact</div>
+      </nav>
+
+      <!-- WORKSPACE -->
+      <div id="workspace">
+
+        <!-- CANVAS -->
+        <div id="canvas-container">
+          <div id="canvas-inner">
+            <div id="canvas-placeholder">
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21,15 16,10 5,21"/>
+              </svg>
+              <span>Select a project from the gallery</span>
+            </div>
+            <img id="project-image" style="display:none;" referrerpolicy="no-referrer" alt="">
+            <canvas id="draw-canvas" style="display:none;"></canvas>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR -->
+        <aside id="right-sidebar">
+
+          <!-- COLOR PANEL -->
+          <div class="panel" id="color-panel">
+            <div style="padding:10px;">
+              <div class="panel-header">Color</div>
+              <div style="height:14px;"></div>
+              <div class="rgb-row">
+                <span class="rgb-label">R</span>
+                <div class="rgb-track" id="r-track">
+                  <div class="rgb-thumb" id="r-thumb"></div>
+                  <input type="range" min="0" max="255" value="57" id="r-slider">
+                </div>
+                <div class="rgb-val" id="r-val">57</div>
+              </div>
+              <div class="rgb-row">
+                <span class="rgb-label">G</span>
+                <div class="rgb-track" id="g-track">
+                  <div class="rgb-thumb" id="g-thumb"></div>
+                  <input type="range" min="0" max="255" value="211" id="g-slider">
+                </div>
+                <div class="rgb-val" id="g-val">211</div>
+              </div>
+              <div class="rgb-row">
+                <span class="rgb-label">B</span>
+                <div class="rgb-track" id="b-track">
+                  <div class="rgb-thumb" id="b-thumb"></div>
+                  <input type="range" min="0" max="255" value="199" id="b-slider">
+                </div>
+                <div class="rgb-val" id="b-val">199</div>
+              </div>
+              <div class="hue-track" id="hue-track">
+                <div class="hue-thumb" id="hue-thumb"></div>
+                <input type="range" min="0" max="360" value="173" id="hue-slider">
+              </div>
+            </div>
+          </div>
+
+          <!-- INFO PANEL -->
+          <div class="panel" id="info-panel">
+            <div style="padding:10px;">
+              <div class="panel-header">Info</div>
+              <div id="info-text">Select a project from the gallery to see details.</div>
+            </div>
+          </div>
+
+          <!-- WORK / GALLERY PANEL -->
+          <div class="panel" id="work-panel">
+            <div style="padding:8px;">
+              <div class="work-top">
+                <div class="panel-header">Work</div>
+
+                <div class="work-ctrl" id="opacity-ctrl">
+                  <img class="ic" src="Assets/Opacity Icon.svg" alt="">
+                  <span id="opacity-label">100%</span>
+                  <img class="chev" src="Assets/ChevronDown.svg" alt="">
+                  <div class="work-dd" id="opacity-dd">
+                    <div class="work-dd-item active" data-val="100">100%</div>
+                    <div class="work-dd-item" data-val="90">90%</div>
+                    <div class="work-dd-item" data-val="80">80%</div>
+                    <div class="work-dd-item" data-val="70">70%</div>
+                    <div class="work-dd-item" data-val="60">60%</div>
+                    <div class="work-dd-item" data-val="50">50%</div>
+                    <div class="work-dd-item" data-val="40">40%</div>
+                    <div class="work-dd-item" data-val="30">30%</div>
+                    <div class="work-dd-item" data-val="20">20%</div>
+                    <div class="work-dd-item" data-val="10">10%</div>
+                  </div>
+                </div>
+
+                <div class="work-ctrl" id="blend-ctrl">
+                  <span id="blend-label">Normal</span>
+                  <img class="chev" src="Assets/ChevronDown.svg" alt="">
+                  <div class="work-dd" id="blend-dd">
+                    <div class="work-dd-item active" data-val="normal">Normal</div>
+                    <div class="work-dd-item" data-val="multiply">Multiply</div>
+                    <div class="work-dd-item" data-val="screen">Screen</div>
+                    <div class="work-dd-item" data-val="overlay">Overlay</div>
+                    <div class="work-dd-item" data-val="darken">Darken</div>
+                    <div class="work-dd-item" data-val="lighten">Lighten</div>
+                    <div class="work-dd-item" data-val="color-dodge">Color Dodge</div>
+                    <div class="work-dd-item" data-val="color-burn">Color Burn</div>
+                    <div class="work-dd-item" data-val="hard-light">Hard Light</div>
+                    <div class="work-dd-item" data-val="soft-light">Soft Light</div>
+                    <div class="work-dd-item" data-val="difference">Difference</div>
+                    <div class="work-dd-item" data-val="exclusion">Exclusion</div>
+                    <div class="work-dd-item" data-val="hue">Hue</div>
+                    <div class="work-dd-item" data-val="saturation">Saturation</div>
+                    <div class="work-dd-item" data-val="color">Color</div>
+                    <div class="work-dd-item" data-val="luminosity">Luminosity</div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="gallery-list"></div>
+            </div>
+          </div>
+
+        </aside>
+      </div><!-- /workspace -->
+
+      <!-- FOOTER -->
+      <footer id="footer">
+        <div id="zoom-indicator">
+          <img src="Assets/Zoom.svg" alt="">
+          <span id="zoom-label">100%</span>
+        </div>
+        <div id="copyright">©2026 Bryce Stradling</div>
+      </footer>
+
+    </div><!-- /center-right -->
+  </div><!-- /top-content -->
+
+</div><!-- /app -->
+
+<script>
+// ================================================================
+// GALLERY DATA — edit here to update portfolio content
+// ================================================================
+const GALLERY = [
+  {
+    id: 'ux-ui',
+    name: 'UX / UI Design',
+    items: [
+      {
+        id: 'lang-acq',
+        name: 'Language Acquisition',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/48d46d188132591.Y3JvcCw3OTUsNjIyLDQ4MCw0MDU.png',
+        url: 'https://www.behance.net/gallery/188132591/Language-Acquisition-Explorations',
+        info: 'Client: Self-initiated\nProject: Language Acquisition Explorations\nGoal: UX research and visual design exploring how apps can better support language learners through engaging, adaptive interfaces.'
+      },
+      {
+        id: 'highlights-planner',
+        name: 'Highlights Planner',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/5c6d94188129255.Y3JvcCwxNDQxLDExMjcsMCww.png',
+        url: 'https://www.behance.net/gallery/188129255/Highlights-Planner',
+        info: 'Client: Highlights for Children\nProject: Highlights Planner App\nGoal: A mobile planning app designed to help students organize daily tasks, track progress, and celebrate learning milestones.'
+      },
+      {
+        id: 'number-practice',
+        name: 'Number Practice App',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/14d82c188128437.Y3JvcCwxMzA5LDEwMjQsMTAwLDA.png',
+        url: 'https://www.behance.net/gallery/188128437/Number-Practice-Tablet-App',
+        info: 'Client: Educational Tech\nProject: Number Practice Tablet App\nGoal: Interactive tablet experience helping young children learn number recognition and basic math through play.'
+      },
+      {
+        id: 'highlights-google',
+        name: 'Highlights / Google',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/73ba18188126657.Y3JvcCwyNTY1LDIwMDYsMTU4LDEyMA.png',
+        url: 'https://www.behance.net/gallery/188126657/HighlightsGoogle-Landing-Page',
+        info: 'Client: Highlights for Children × Google\nProject: Co-branded Landing Page\nGoal: A responsive landing page design for a Highlights and Google partnership campaign, emphasizing education and creativity.'
+      },
+      {
+        id: 'scana',
+        name: 'Scana Offline Storage',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/b23d83139587425.Y3JvcCw4MDgsNjMyLDAsMA.png',
+        url: 'https://www.behance.net/gallery/139587425/Scana-Offline-Storage',
+        info: 'Client: Scana\nProject: Offline Storage App\nGoal: Product design for a secure offline storage solution with an intuitive file management interface built for non-technical users.'
+      },
+      {
+        id: 'igs',
+        name: 'IGS Revenue Operations',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/757ae1139581271.Y3JvcCw4MDgsNjMyLDAsMA.png',
+        url: 'https://www.behance.net/gallery/139581271/IGS-Revenue-Operations',
+        info: 'Client: IGS Energy\nProject: Revenue Operations Dashboard\nGoal: Streamline the revenue operations workflow through a cohesive dashboard design that surfaces key KPIs and reduces context switching.'
+      },
+      {
+        id: 'tread',
+        name: 'Tread Flightly',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/7c5eef139155907.Y3JvcCw4MDgsNjMyLDAsMA.png',
+        url: 'https://www.behance.net/gallery/139155907/Tread-Flightly',
+        info: 'Client: Tread Flightly\nProject: Brand & E-Commerce Experience\nGoal: Build a sustainable footwear brand with an e-commerce experience that communicates eco-friendly values and premium quality.'
+      },
+      {
+        id: 'personal-ui',
+        name: 'Personal UI Projects',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/4ff571111246695.Y3JvcCwxNDQwLDExMjYsMCw3NDQ1.png',
+        url: 'https://www.behance.net/gallery/111246695/Personal-UI-Projects',
+        info: 'Client: Self-initiated\nProject: Personal UI Explorations\nGoal: A collection of personal interface design experiments exploring interaction patterns, visual styles, and emerging design trends.'
+      }
+    ]
+  },
+  {
+    id: 'branding',
+    name: 'Branding & Print',
+    items: [
+      {
+        id: 'pistachios',
+        name: 'Pistachios Packaging',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/44a1c6111249153.Y3JvcCw4NzEsNjgyLDc1LDA.png',
+        url: 'https://www.behance.net/gallery/111249153/Pistachios-Package-Design',
+        info: 'Client: Self-initiated\nProject: Pistachios Package Design\nGoal: Premium pistachio snack packaging with bold typography, earthy illustration, and a strong shelf presence.'
+      },
+      {
+        id: 'wedding',
+        name: 'Wedding Invites',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/54f9aa111248759.Y3JvcCw5MDIsNzA1LDI0LDIwMA.png',
+        url: 'https://www.behance.net/gallery/111248759/Wedding-Invites',
+        info: 'Client: Private\nProject: Custom Wedding Invitation Suite\nGoal: An elegant, timeless wedding invitation design featuring hand-lettered typography and delicate botanical motifs.'
+      },
+      {
+        id: 'washington',
+        name: 'Washington Art Gallery',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/b92623111308297.Y3JvcCwxMzA5LDEwMjQsNjQsMA.png',
+        url: 'https://www.behance.net/gallery/111308297/Washington-Art-Gallery',
+        info: 'Client: Washington Art Gallery\nProject: Brand Identity & Exhibition Design\nGoal: A sophisticated visual identity and exhibition materials reflecting the gallery\'s commitment to fine art and culture.'
+      }
+    ]
+  },
+  {
+    id: 'illustration',
+    name: 'Illustration',
+    items: [
+      {
+        id: 'wallpapers',
+        name: 'Wallpapers Dump',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/efb956111248443.Y3JvcCwxMDEyLDc5MiwxMDUsMA.png',
+        url: 'https://www.behance.net/gallery/111248443/Wallpapers-Dump',
+        info: 'Client: Self-initiated\nProject: Digital Illustration & Wallpapers\nGoal: A collection of digital illustrations exploring color, form, and narrative through abstract and figurative approaches.'
+      }
+    ]
+  }
+];
+
+// ================================================================
+// ABOUT TEXT
+// ================================================================
+const ABOUT_TEXT = `
+<p><strong>Bryce Stradling</strong> is a UX/UI designer and visual artist with a passion for crafting meaningful digital experiences.</p>
+<br>
+<p>With a background spanning product design, brand identity, illustration, and print, Bryce brings a multidisciplinary perspective to every project — balancing visual craft with strategic thinking.</p>
+<br>
+<p>Available for freelance work and collaborations.</p>
+<br>
+<p><a href="https://www.behance.net/brycestradling" target="_blank" style="color:#282b33;font-weight:700;">View full portfolio on Behance →</a></p>
+`;
+
+// ================================================================
+// STATE
+// ================================================================
+let activeTool = 'brush';
+let drawColor  = { r: 57,  g: 211, b: 199 };
+let bgColor    = { r: 255, g: 255, b: 255 };
+let hue        = 173;
+let isDrawing  = false;
+let lastX = 0, lastY = 0;
+let canvasScale = 1;
+let selectedItemId = null;
+let imageOpacity = 1;
+let imageBlend   = 'normal';
+let shapeStart = null, shapeSnapshot = null;
+
+// DOM
+const drawCanvas   = document.getElementById('draw-canvas');
+const ctx          = drawCanvas.getContext('2d');
+const projectImage = document.getElementById('project-image');
+const canvasInner  = document.getElementById('canvas-inner');
+const canvasContainer = document.getElementById('canvas-container');
+const placeholder  = document.getElementById('canvas-placeholder');
+
+// ================================================================
+// GALLERY
+// ================================================================
+function renderGallery() {
+  const list = document.getElementById('gallery-list');
+  list.innerHTML = '';
+  GALLERY.forEach(folder => {
+    const fEl = document.createElement('div');
+    fEl.className = 'g-folder open';
+    fEl.dataset.fid = folder.id;
+
+    fEl.innerHTML = `
+      <div class="g-folder-hd">
+        <div class="g-icon-cell">
+          <div class="g-icon-wrap"><img src="Assets/FolderClosedIcon.svg" alt=""></div>
+        </div>
+        <div class="g-chev-cell"><img class="g-chev open" src="Assets/ChevronRight.svg" alt=""></div>
+        <div class="g-folder-name">${folder.name}</div>
+      </div>
+      <div class="g-folder-items"></div>
+    `;
+
+    fEl.querySelector('.g-folder-hd').addEventListener('click', () => {
+      fEl.classList.toggle('open');
+      fEl.querySelector('.g-chev').classList.toggle('open');
+    });
+
+    const items = fEl.querySelector('.g-folder-items');
+    folder.items.forEach(item => {
+      const iEl = document.createElement('div');
+      iEl.className = 'g-item';
+      iEl.dataset.iid = item.id;
+      iEl.dataset.fid = folder.id;
+      iEl.innerHTML = `
+        <div class="g-vis-cell">
+          <div class="g-vis-wrap"><img class="g-vis-icon" src="Assets/Eyeball.svg" alt=""></div>
+        </div>
+        <div class="g-thumb"><img src="${item.thumb}" alt="${item.name}" loading="lazy"></div>
+        <div class="g-name">${item.name}</div>
+      `;
+      iEl.addEventListener('click', () => selectGalleryItem(folder.id, item.id));
+      items.appendChild(iEl);
+    });
+
+    list.appendChild(fEl);
+  });
+}
+
+function selectGalleryItem(fid, iid) {
+  document.querySelectorAll('.g-item').forEach(el => el.classList.remove('selected'));
+  const el = document.querySelector(`.g-item[data-iid="${iid}"]`);
+  if (el) el.classList.add('selected');
+
+  const folder = GALLERY.find(f => f.id === fid);
+  const item   = folder?.items.find(i => i.id === iid);
+  if (!item) return;
+
+  selectedItemId = iid;
+  document.getElementById('info-text').textContent = item.info;
+  loadImage(item.thumb);
+}
+
+function loadImage(src) {
+  placeholder.style.display = 'none';
+  projectImage.style.display = 'none';
+  drawCanvas.style.display   = 'none';
+
+  // Use a fresh Image object to detect load success before committing to display
+  const probe = new Image();
+  probe.referrerPolicy = 'no-referrer';
+
+  probe.onload = () => {
+    const w = probe.naturalWidth  || 600;
+    const h = probe.naturalHeight || 400;
+    canvasInner.style.width  = w + 'px';
+    canvasInner.style.height = h + 'px';
+    drawCanvas.width  = w;
+    drawCanvas.height = h;
+    projectImage.style.width  = w + 'px';
+    projectImage.style.height = h + 'px';
+    projectImage.referrerPolicy = 'no-referrer';
+    projectImage.src = src;
+    projectImage.style.display = 'block';
+    drawCanvas.style.display   = 'block';
+    applyImageSettings();
+  };
+  probe.onerror = () => {
+    // Show canvas anyway so tools work — image just won't display
+    const w = 658, h = 500;
+    canvasInner.style.width  = w + 'px';
+    canvasInner.style.height = h + 'px';
+    drawCanvas.width  = w;
+    drawCanvas.height = h;
+    drawCanvas.style.display = 'block';
+    placeholder.style.display = 'none';
+    // Draw a subtle placeholder on the canvas
+    ctx.fillStyle = '#f0faf8';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(40,43,51,0.15)';
+    ctx.font = '600 14px Jura, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Image blocked by browser — canvas ready for drawing', w/2, h/2);
+    ctx.textAlign = 'left';
+  };
+  probe.src = src;
+}
+
+// ================================================================
+// IMAGE SETTINGS
+// ================================================================
+function applyImageSettings() {
+  projectImage.style.opacity      = imageOpacity;
+  projectImage.style.mixBlendMode = imageBlend;
+}
+
+// ================================================================
+// DRAWING
+// ================================================================
+function getPos(e) {
+  const rect = drawCanvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) / canvasScale,
+    y: (e.clientY - rect.top)  / canvasScale
+  };
+}
+
+drawCanvas.addEventListener('mousedown', e => {
+  const pos = getPos(e);
+  if (activeTool === 'eyedropper') { pickColor(pos.x, pos.y); return; }
+  if (activeTool === 'fill')       { floodFill(Math.round(pos.x), Math.round(pos.y)); return; }
+  if (activeTool === 'move' || activeTool === 'hand') { startPan(e); return; }
+  if (activeTool === 'zoom') { doZoom(e.altKey ? -0.2 : 0.2); return; }
+  if (activeTool === 'text') { placeText(pos.x, pos.y); return; }
+
+  isDrawing = true;
+  lastX = pos.x; lastY = pos.y;
+
+  if (['rectangle','ellipse','polygon'].includes(activeTool)) {
+    shapeStart    = { x: pos.x, y: pos.y };
+    shapeSnapshot = ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+  }
+});
+
+drawCanvas.addEventListener('mousemove', e => {
+  if (!isDrawing) return;
+  const pos = getPos(e);
+  const { r, g, b } = drawColor;
+  ctx.strokeStyle = `rgb(${r},${g},${b})`;
+  ctx.fillStyle   = `rgb(${r},${g},${b})`;
+  ctx.globalCompositeOperation = 'source-over';
+
+  if (activeTool === 'brush') {
+    ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.lineTo(pos.x, pos.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+  } else if (activeTool === 'pen') {
+    ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.lineTo(pos.x, pos.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+  } else if (activeTool === 'eraser') {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.lineWidth = 20; ctx.lineCap = 'round';
+    ctx.lineTo(pos.x, pos.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+    ctx.globalCompositeOperation = 'source-over';
+  } else if (activeTool === 'rectangle') {
+    ctx.putImageData(shapeSnapshot, 0, 0);
+    ctx.lineWidth = 2;
+    ctx.strokeRect(shapeStart.x, shapeStart.y, pos.x - shapeStart.x, pos.y - shapeStart.y);
+  } else if (activeTool === 'ellipse') {
+    ctx.putImageData(shapeSnapshot, 0, 0);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(
+      shapeStart.x + (pos.x - shapeStart.x) / 2,
+      shapeStart.y + (pos.y - shapeStart.y) / 2,
+      Math.abs(pos.x - shapeStart.x) / 2,
+      Math.abs(pos.y - shapeStart.y) / 2,
+      0, 0, Math.PI * 2
+    );
+    ctx.stroke();
+  } else if (activeTool === 'polygon') {
+    ctx.putImageData(shapeSnapshot, 0, 0);
+    ctx.lineWidth = 2;
+    const cx = shapeStart.x + (pos.x - shapeStart.x) / 2;
+    const cy = shapeStart.y + (pos.y - shapeStart.y) / 2;
+    const rx = Math.abs(pos.x - shapeStart.x) / 2;
+    const ry = Math.abs(pos.y - shapeStart.y) / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, shapeStart.y);
+    ctx.lineTo(shapeStart.x + rx * 2, shapeStart.y + ry * 2);
+    ctx.lineTo(shapeStart.x, shapeStart.y + ry * 2);
+    ctx.closePath(); ctx.stroke();
+  }
+  lastX = pos.x; lastY = pos.y;
+});
+
+drawCanvas.addEventListener('mouseup',    () => { isDrawing = false; shapeSnapshot = null; });
+drawCanvas.addEventListener('mouseleave', () => { isDrawing = false; });
+
+// Touch support
+drawCanvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  drawCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY }));
+}, { passive: false });
+drawCanvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  drawCanvas.dispatchEvent(new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY }));
+}, { passive: false });
+drawCanvas.addEventListener('touchend', () => drawCanvas.dispatchEvent(new MouseEvent('mouseup')));
+
+// Eyedropper
+function pickColor(x, y) {
+  const tmp = document.createElement('canvas');
+  tmp.width = drawCanvas.width; tmp.height = drawCanvas.height;
+  const t = tmp.getContext('2d');
+  try { t.drawImage(projectImage, 0, 0); } catch(e) {}
+  t.drawImage(drawCanvas, 0, 0);
+  const px = t.getImageData(Math.round(x), Math.round(y), 1, 1).data;
+  if (px[3] > 0) {
+    drawColor = { r: px[0], g: px[1], b: px[2] };
+    document.getElementById('r-slider').value = drawColor.r;
+    document.getElementById('g-slider').value = drawColor.g;
+    document.getElementById('b-slider').value = drawColor.b;
+    updateColorUI();
+  }
+}
+
+// Flood fill
+function floodFill(sx, sy) {
+  const imgData = ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+  const d = imgData.data;
+  const idx = (sy * drawCanvas.width + sx) * 4;
+  const tR = d[idx], tG = d[idx+1], tB = d[idx+2], tA = d[idx+3];
+  const { r, g, b } = drawColor;
+  if (tR===r && tG===g && tB===b && tA===255) return;
+  const stack = [[sx, sy]];
+  const W = drawCanvas.width, H = drawCanvas.height;
+  const visited = new Uint8Array(W * H);
+  while (stack.length) {
+    const [px, py] = stack.pop();
+    if (px<0||px>=W||py<0||py>=H) continue;
+    const i = (py*W+px)*4;
+    if (visited[py*W+px]) continue;
+    if (d[i]!==tR||d[i+1]!==tG||d[i+2]!==tB||d[i+3]!==tA) continue;
+    visited[py*W+px] = 1;
+    d[i]=r; d[i+1]=g; d[i+2]=b; d[i+3]=255;
+    stack.push([px+1,py],[px-1,py],[px,py+1],[px,py-1]);
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+// Text tool
+function placeText(x, y) {
+  const inp = document.createElement('input');
+  inp.style.cssText = `position:absolute;left:${x}px;top:${y}px;z-index:10;
+    font-family:Jura,sans-serif;font-size:16px;font-weight:600;
+    color:rgb(${drawColor.r},${drawColor.g},${drawColor.b});
+    background:transparent;border:1px dashed rgba(40,43,51,0.5);
+    outline:none;min-width:60px;padding:2px 4px;`;
+  canvasInner.appendChild(inp);
+  inp.focus();
+  const commit = () => {
+    if (inp.value.trim()) {
+      ctx.font = '600 16px Jura, sans-serif';
+      ctx.fillStyle = `rgb(${drawColor.r},${drawColor.g},${drawColor.b})`;
+      ctx.fillText(inp.value, x, y + 16);
+    }
+    inp.remove();
+  };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') inp.remove(); });
+}
+
+// Pan
+let panStart = null, panScroll = null;
+function startPan(e) {
+  panStart  = { x: e.clientX, y: e.clientY };
+  panScroll = { x: canvasContainer.scrollLeft, y: canvasContainer.scrollTop };
+  const mv = ev => {
+    canvasContainer.scrollLeft = panScroll.x - (ev.clientX - panStart.x);
+    canvasContainer.scrollTop  = panScroll.y - (ev.clientY - panStart.y);
+  };
+  const up = () => { panStart = null; document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); };
+  document.addEventListener('mousemove', mv);
+  document.addEventListener('mouseup',   up);
+}
+
+// Zoom
+function doZoom(delta) {
+  canvasScale = Math.max(0.1, Math.min(4, canvasScale + delta));
+  canvasInner.style.transform = `scale(${canvasScale})`;
+  document.getElementById('zoom-label').textContent = Math.round(canvasScale * 100) + '%';
+}
+
+// ================================================================
+// COLOR CONTROLS
+// ================================================================
+function updateColorFromRGB() {
+  drawColor.r = +document.getElementById('r-slider').value;
+  drawColor.g = +document.getElementById('g-slider').value;
+  drawColor.b = +document.getElementById('b-slider').value;
+  // Derive approximate hue for the hue slider
+  const mx = Math.max(drawColor.r, drawColor.g, drawColor.b);
+  const mn = Math.min(drawColor.r, drawColor.g, drawColor.b);
+  if (mx !== mn) {
+    const d = mx - mn;
+    let h = 0;
+    if (mx === drawColor.r) h = ((drawColor.g - drawColor.b) / d + 6) % 6;
+    else if (mx === drawColor.g) h = (drawColor.b - drawColor.r) / d + 2;
+    else h = (drawColor.r - drawColor.g) / d + 4;
+    hue = Math.round(h * 60);
+    document.getElementById('hue-slider').value = hue;
+  }
+  updateColorUI();
+}
+
+function updateColorFromHue() {
+  hue = +document.getElementById('hue-slider').value;
+  const rgb = hslToRgb(hue / 360, 1, 0.5);
+  drawColor = rgb;
+  document.getElementById('r-slider').value = rgb.r;
+  document.getElementById('g-slider').value = rgb.g;
+  document.getElementById('b-slider').value = rgb.b;
+  updateColorUI();
+}
+
+function updateColorUI() {
+  const { r, g, b } = drawColor;
+  document.getElementById('r-val').textContent = r;
+  document.getElementById('g-val').textContent = g;
+  document.getElementById('b-val').textContent = b;
+
+  document.getElementById('r-track').style.background =
+    `linear-gradient(to right,rgb(0,${g},${b}),rgb(255,${g},${b}))`;
+  document.getElementById('g-track').style.background =
+    `linear-gradient(to right,rgb(${r},0,${b}),rgb(${r},255,${b}))`;
+  document.getElementById('b-track').style.background =
+    `linear-gradient(to right,rgb(${r},${g},0),rgb(${r},${g},255))`;
+
+  setThumb('r-thumb', 'r-track', r / 255);
+  setThumb('g-thumb', 'g-track', g / 255);
+  setThumb('b-thumb', 'b-track', b / 255);
+  setThumb('hue-thumb', 'hue-track', hue / 360);
+
+  document.getElementById('swatch-fg').style.background = `rgb(${r},${g},${b})`;
+}
+
+function setThumb(thumbId, trackId, frac) {
+  const track = document.getElementById(trackId);
+  const w = track.clientWidth;
+  document.getElementById(thumbId).style.left = (frac * (w - 10) + 5) + 'px';
+}
+
+function hslToRgb(h, s, l) {
+  const hue2 = (p, q, t) => {
+    if (t<0) t+=1; if (t>1) t-=1;
+    if (t<1/6) return p+(q-p)*6*t;
+    if (t<1/2) return q;
+    if (t<2/3) return p+(q-p)*(2/3-t)*6;
+    return p;
+  };
+  if (s === 0) { const v = Math.round(l*255); return {r:v,g:v,b:v}; }
+  const q = l<0.5 ? l*(1+s) : l+s-l*s;
+  const p = 2*l - q;
+  return {
+    r: Math.round(hue2(p,q,h+1/3)*255),
+    g: Math.round(hue2(p,q,h)*255),
+    b: Math.round(hue2(p,q,h-1/3)*255)
+  };
+}
+
+['r','g','b'].forEach(ch => {
+  document.getElementById(`${ch}-slider`).addEventListener('input', updateColorFromRGB);
+});
+document.getElementById('hue-slider').addEventListener('input', updateColorFromHue);
+
+// ================================================================
+// TOOLBAR
+// ================================================================
+document.getElementById('toolbar-grid').addEventListener('click', e => {
+  const btn = e.target.closest('.tool-btn');
+  if (!btn) return;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  activeTool = btn.dataset.tool;
+  document.body.className = `tool-${activeTool}`;
+});
+
+// ================================================================
+// MENUS
+// ================================================================
+document.getElementById('file-menu').addEventListener('click', e => {
+  e.stopPropagation();
+  const dd = document.getElementById('file-dropdown');
+  const open = !dd.classList.contains('hidden');
+  dd.classList.toggle('hidden');
+  document.getElementById('file-menu').classList.toggle('open', !open);
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  document.getElementById('file-dropdown').classList.add('hidden');
+  document.getElementById('file-menu').classList.remove('open');
+});
+
+document.getElementById('screenshot-btn').addEventListener('click', () => {
+  takeScreenshot();
+  document.getElementById('file-dropdown').classList.add('hidden');
+  document.getElementById('file-menu').classList.remove('open');
+});
+
+document.getElementById('about-btn').addEventListener('click', () => {
+  document.getElementById('about-content').innerHTML = ABOUT_TEXT;
+  document.getElementById('about-modal').classList.remove('hidden');
+});
+
+document.getElementById('contact-btn').addEventListener('click', () => {
+  document.getElementById('contact-modal').classList.remove('hidden');
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#file-menu')) {
+    document.getElementById('file-dropdown').classList.add('hidden');
+    document.getElementById('file-menu').classList.remove('open');
+  }
+  if (!e.target.closest('#opacity-ctrl'))  document.getElementById('opacity-dd').classList.remove('open');
+  if (!e.target.closest('#blend-ctrl'))    document.getElementById('blend-dd').classList.remove('open');
+});
+
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+document.querySelectorAll('.modal-ov').forEach(ov =>
+  ov.addEventListener('click', e => { if (e.target === ov) ov.classList.add('hidden'); })
+);
+
+function submitContact(e) {
+  e.preventDefault();
+  document.getElementById('contact-body').innerHTML =
+    '<p style="text-align:center;padding:30px 0;font-size:15px;font-weight:700;">Message sent! I\'ll be in touch soon.</p>';
+}
+
+// ================================================================
+// OPACITY + BLEND MODE
+// ================================================================
+document.getElementById('opacity-ctrl').addEventListener('click', e => {
+  e.stopPropagation();
+  document.getElementById('opacity-dd').classList.toggle('open');
+  document.getElementById('blend-dd').classList.remove('open');
+});
+document.getElementById('blend-ctrl').addEventListener('click', e => {
+  e.stopPropagation();
+  document.getElementById('blend-dd').classList.toggle('open');
+  document.getElementById('opacity-dd').classList.remove('open');
+});
+
+document.querySelectorAll('#opacity-dd .work-dd-item').forEach(item => {
+  item.addEventListener('click', () => {
+    imageOpacity = +item.dataset.val / 100;
+    document.getElementById('opacity-label').textContent = item.dataset.val + '%';
+    document.querySelectorAll('#opacity-dd .work-dd-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('opacity-dd').classList.remove('open');
+    applyImageSettings();
+  });
+});
+
+document.querySelectorAll('#blend-dd .work-dd-item').forEach(item => {
+  item.addEventListener('click', () => {
+    imageBlend = item.dataset.val;
+    document.getElementById('blend-label').textContent = item.textContent;
+    document.querySelectorAll('#blend-dd .work-dd-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('blend-dd').classList.remove('open');
+    applyImageSettings();
+  });
+});
+
+// ================================================================
+// SCREENSHOT
+// ================================================================
+function takeScreenshot() {
+  if (!drawCanvas.width) { alert('Load a project image first.'); return; }
+  const tmp = document.createElement('canvas');
+  tmp.width = drawCanvas.width; tmp.height = drawCanvas.height;
+  const t = tmp.getContext('2d');
+  t.fillStyle = 'white';
+  t.fillRect(0, 0, tmp.width, tmp.height);
+  try {
+    t.globalAlpha = imageOpacity;
+    t.globalCompositeOperation = imageBlend === 'normal' ? 'source-over' : imageBlend;
+    t.drawImage(projectImage, 0, 0);
+    t.globalAlpha = 1;
+    t.globalCompositeOperation = 'source-over';
+  } catch(e) {}
+  t.drawImage(drawCanvas, 0, 0);
+  const item = GALLERY.flatMap(f => f.items).find(i => i.id === selectedItemId);
+  const link = document.createElement('a');
+  link.download = (item ? item.name.replace(/\s+/g,'-') : 'canvas') + '.png';
+  link.href = tmp.toDataURL('image/png');
+  link.click();
+}
+
+// ================================================================
+// ZOOM (footer click + ctrl+wheel)
+// ================================================================
+document.getElementById('zoom-indicator').addEventListener('click', () => {
+  const levels = [0.25, 0.5, 0.75, 1, 1.5, 2];
+  const cur = levels.findIndex(l => Math.abs(l - canvasScale) < 0.05);
+  const next = levels[(cur + 1) % levels.length];
+  canvasScale = next;
+  canvasInner.style.transform = `scale(${canvasScale})`;
+  document.getElementById('zoom-label').textContent = Math.round(canvasScale * 100) + '%';
+});
+
+canvasContainer.addEventListener('wheel', e => {
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    doZoom(e.deltaY < 0 ? 0.1 : -0.1);
+  }
+}, { passive: false });
+
+// ================================================================
+// SWATCH SWAP
+// ================================================================
+function doSwap() {
+  [drawColor, bgColor] = [bgColor, drawColor];
+  document.getElementById('r-slider').value = drawColor.r;
+  document.getElementById('g-slider').value = drawColor.g;
+  document.getElementById('b-slider').value = drawColor.b;
+  updateColorUI();
+  document.getElementById('swatch-bg').style.background = `rgb(${bgColor.r},${bgColor.g},${bgColor.b})`;
+}
+document.getElementById('swatch-swap').addEventListener('click', doSwap);
+document.getElementById('swatch-fg').addEventListener('click', doSwap);
+document.getElementById('swatch-bg').addEventListener('click', doSwap);
+
+// ================================================================
+// INIT
+// ================================================================
+renderGallery();
+// Defer thumb placement until layout is ready
+requestAnimationFrame(() => { requestAnimationFrame(updateColorUI); });
+</script>
+</body>
+</html>
