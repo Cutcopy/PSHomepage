@@ -130,6 +130,31 @@ a{text-decoration:none;color:inherit;}
 .dd-item:hover{background:rgba(255,255,255,0.5);}
 .dd-item.active{background:rgba(255,255,255,0.5);}
 
+/* ===== TEXT TOOLBAR ===== */
+#text-toolbar{
+  flex-shrink:0;height:30px;
+  background:rgba(255,255,255,0.55);
+  border-bottom:1px solid rgba(40,43,51,0.15);
+  display:flex;align-items:center;gap:8px;
+  padding:0 10px;
+}
+.tt-label{font-size:11px;font-weight:700;color:#282b33;user-select:none;}
+#tt-size{
+  font-family:inherit;font-size:12px;font-weight:700;
+  border:1.5px solid #282b33;border-radius:5px;
+  background:rgba(255,255,255,0.6);color:#282b33;
+  padding:1px 4px;cursor:pointer;height:22px;
+}
+.tt-btn{
+  font-family:inherit;font-size:13px;font-weight:700;
+  border:1.5px solid #282b33;border-radius:5px;
+  background:rgba(255,255,255,0.3);color:#282b33;
+  width:24px;height:22px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.tt-btn.active{background:#39d3bd;}
+.tt-hint{font-size:11px;color:rgba(40,43,51,0.5);margin-left:4px;user-select:none;}
+
 /* ===== WORKSPACE ===== */
 #workspace{flex:1;display:flex;overflow:hidden;min-height:0;}
 
@@ -507,6 +532,23 @@ a{text-decoration:none;color:inherit;}
         <div class="menu-item" id="about-btn">About</div>
         <div class="menu-item" id="contact-btn">Contact</div>
       </nav>
+
+      <!-- TEXT TOOLBAR (shown only when text tool active) -->
+      <div id="text-toolbar" style="display:none;">
+        <label class="tt-label">Size</label>
+        <select id="tt-size">
+          <option value="12">12</option>
+          <option value="16">16</option>
+          <option value="20" selected>20</option>
+          <option value="24">24</option>
+          <option value="32">32</option>
+          <option value="48">48</option>
+          <option value="64">64</option>
+          <option value="96">96</option>
+        </select>
+        <button id="tt-bold" class="tt-btn" title="Bold">B</button>
+        <span class="tt-hint">Click canvas to place · Enter for new line · Esc to cancel</span>
+      </div>
 
       <!-- WORKSPACE -->
       <div id="workspace">
@@ -1051,25 +1093,81 @@ function floodFill(sx, sy) {
 }
 
 // Text tool
+let textFontSize = 20;
+let textBold = false;
+
+function showTextBar(show) {
+  let bar = document.getElementById('text-toolbar');
+  if (!bar) return;
+  bar.style.display = show ? 'flex' : 'none';
+}
+
 function placeText(x, y) {
-  const inp = document.createElement('input');
-  inp.style.cssText = `position:absolute;left:${x}px;top:${y}px;z-index:10;
-    font-family:Jura,sans-serif;font-size:16px;font-weight:600;
-    color:rgb(${drawColor.r},${drawColor.g},${drawColor.b});
-    background:transparent;border:1px dashed rgba(40,43,51,0.5);
-    outline:none;min-width:60px;padding:2px 4px;`;
-  canvasInner.appendChild(inp);
-  inp.focus();
-  const commit = () => {
-    if (inp.value.trim()) {
-      ctx.font = '600 16px Jura, sans-serif';
-      ctx.fillStyle = `rgb(${drawColor.r},${drawColor.g},${drawColor.b})`;
-      ctx.fillText(inp.value, x, y + 16);
+  // Commit any existing text input first
+  const prev = document.getElementById('active-text-el');
+  if (prev) { prev.blur(); return; }
+
+  const { r, g, b } = drawColor;
+  const color = `rgb(${r},${g},${b})`;
+  const fontWeight = textBold ? '700' : '600';
+  // Scale font-size down by canvasScale so it renders at textFontSize canvas-px visually
+  const cssFontSize = textFontSize / canvasScale;
+  const cssLineH = cssFontSize * 1.35;
+
+  const el = document.createElement('div');
+  el.id = 'active-text-el';
+  el.contentEditable = 'true';
+  el.spellcheck = false;
+  el.style.cssText = [
+    `position:absolute`,
+    `left:${x}px`,
+    `top:${y}px`,
+    `z-index:20`,
+    `font-family:"Jura",sans-serif`,
+    `font-size:${cssFontSize}px`,
+    `font-weight:${fontWeight}`,
+    `line-height:${cssLineH}px`,
+    `color:${color}`,
+    `caret-color:${color}`,
+    `background:transparent`,
+    `border:none`,
+    `outline:none`,
+    `box-shadow:0 0 0 1.5px rgba(40,43,51,0.35)`,
+    `padding:3px 5px`,
+    `min-width:4px`,
+    `white-space:pre`,
+    `cursor:text`,
+    `user-select:text`,
+    `-webkit-user-select:text`,
+  ].join(';');
+
+  canvasInner.appendChild(el);
+  el.focus();
+
+  // Place cursor at the click point
+  const sel = window.getSelection();
+  if (sel) { const range = document.createRange(); range.setStart(el, 0); range.collapse(true); sel.removeAllRanges(); sel.addRange(range); }
+
+  function commit() {
+    const rawText = el.innerText;
+    if (rawText.replace(/\n$/, '').trim()) {
+      const lines = rawText.replace(/\n$/, '').split('\n');
+      const lineH = textFontSize * 1.35;
+      ctx.save();
+      ctx.font = `${fontWeight} ${textFontSize}px "Jura", sans-serif`;
+      ctx.fillStyle = color;
+      ctx.textBaseline = 'top';
+      lines.forEach((line, i) => { ctx.fillText(line, x, y + i * lineH); });
+      ctx.restore();
     }
-    inp.remove();
-  };
-  inp.addEventListener('blur', commit);
-  inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') inp.remove(); });
+    el.remove();
+  }
+
+  el.addEventListener('blur', commit);
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { el.removeEventListener('blur', commit); el.remove(); e.preventDefault(); }
+    e.stopPropagation();
+  });
 }
 
 // Pan
@@ -1299,6 +1397,22 @@ document.getElementById('toolbar-grid').addEventListener('click', e => {
   btn.classList.add('selected');
   activeTool = btn.dataset.tool;
   document.body.className = `tool-${activeTool}`;
+  // Show/hide text toolbar
+  showTextBar(activeTool === 'text');
+  // Dismiss any open text input if switching away
+  if (activeTool !== 'text') {
+    const el = document.getElementById('active-text-el');
+    if (el) el.blur();
+  }
+});
+
+// Text toolbar controls
+document.getElementById('tt-size').addEventListener('change', e => {
+  textFontSize = +e.target.value;
+});
+document.getElementById('tt-bold').addEventListener('click', () => {
+  textBold = !textBold;
+  document.getElementById('tt-bold').classList.toggle('active', textBold);
 });
 
 // ================================================================
