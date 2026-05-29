@@ -523,9 +523,9 @@ a{text-decoration:none;color:inherit;}
       <!-- TOPBAR -->
       <nav id="topbar">
         <div class="menu-item" id="file-menu">
-          FILE
+          File
           <div id="file-dropdown" class="hidden">
-            <div class="dd-item active" id="reset-btn">Reset</div>
+            <div class="dd-item" id="reset-btn">Reset</div>
             <div class="dd-item" id="screenshot-btn">Screenshot</div>
           </div>
         </div>
@@ -965,6 +965,7 @@ function getPos(e) {
 canvasInner.addEventListener('mousedown', e => {
   if (activeTool !== 'text') return;
   if (e.target === drawCanvas || drawCanvas.contains(e.target)) return; // handled below
+  e.preventDefault(); // prevent browser stealing focus after we set it
   const rect = canvasInner.getBoundingClientRect();
   const x = (e.clientX - rect.left) / canvasScale;
   const y = (e.clientY - rect.top)  / canvasScale;
@@ -979,7 +980,7 @@ drawCanvas.addEventListener('mousedown', e => {
   if (activeTool === 'fill')       { floodFill(Math.round(pos.x), Math.round(pos.y)); return; }
   if (activeTool === 'move' || activeTool === 'hand') { startPan(e); return; }
   if (activeTool === 'zoom') { doZoom(e.altKey ? -0.2 : 0.2); return; }
-  if (activeTool === 'text') { placeText(pos.x, pos.y); return; }
+  if (activeTool === 'text') { e.preventDefault(); placeText(pos.x, pos.y); return; }
 
   isDrawing = true;
   lastX = pos.x; lastY = pos.y;
@@ -1166,11 +1167,15 @@ function placeText(x, y) {
   ].join(';');
 
   canvasInner.appendChild(el);
-  el.focus();
 
-  // Place cursor at the click point
-  const sel = window.getSelection();
-  if (sel) { const range = document.createRange(); range.setStart(el, 0); range.collapse(true); sel.removeAllRanges(); sel.addRange(range); }
+  // Defer focus so the browser's default mousedown handling can't steal it back
+  setTimeout(() => {
+    el.focus();
+    try {
+      const sel = window.getSelection();
+      if (sel) { const range = document.createRange(); range.selectNodeContents(el); range.collapse(false); sel.removeAllRanges(); sel.addRange(range); }
+    } catch(_) {}
+  }, 0);
 
   function commit() {
     const rawText = el.innerText;
