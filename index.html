@@ -453,8 +453,9 @@ a{text-decoration:none;color:inherit;}
 .btn-submit:hover{background:#5cd9c7;}
 
 /* ===== CURSOR STATES ===== */
-.tool-move #draw-canvas,.tool-hand #draw-canvas{cursor:grab;}
-.tool-move #draw-canvas:active,.tool-hand #draw-canvas:active{cursor:grabbing;}
+.tool-hand #draw-canvas{cursor:grab;}
+.tool-hand #draw-canvas:active{cursor:grabbing;}
+.tool-move #draw-canvas{cursor:crosshair;}
 .tool-zoom #draw-canvas{cursor:zoom-in;}
 .tool-eyedropper #draw-canvas,.tool-eyedropper #canvas-inner{cursor:crosshair;}
 .tool-eraser #draw-canvas{cursor:cell;}
@@ -505,7 +506,7 @@ a{text-decoration:none;color:inherit;}
       <div class="logo"><img src="Assets/Bryce Logo.svg" alt="Bryce Stradling"></div>
 
       <div class="toolbar-grid" id="toolbar-grid">
-        <button class="tool-btn" data-tool="move"       title="Move">       <img src="Assets/Move.svg"          alt="Move"></button>
+        <button class="tool-btn" data-tool="move"       title="Line">       <img src="Assets/Move.svg"          alt="Line"></button>
         <button class="tool-btn" data-tool="zoom"       title="Zoom">       <img src="Assets/Zoom.svg"          alt="Zoom"></button>
         <button class="tool-btn" data-tool="hand"       title="Hand">       <img src="Assets/handtool.svg"      alt="Hand"></button>
         <button class="tool-btn" data-tool="ellipse"    title="Ellipse">    <img src="Assets/Ellipsetool.svg"   alt="Ellipse"></button>
@@ -1119,7 +1120,13 @@ drawCanvas.addEventListener('mousedown', e => {
   const pos = getPos(e);
   if (activeTool === 'eyedropper') { e.preventDefault(); openEyeDropper(pos.x, pos.y); return; }
   if (activeTool === 'fill')       { floodFill(Math.round(pos.x), Math.round(pos.y)); return; }
-  if (activeTool === 'move' || activeTool === 'hand') { startPan(e); return; }
+  if (activeTool === 'hand') { startPan(e); return; }
+  if (activeTool === 'move') { // line tool — fall through to shape drawing below
+    isDrawing = true;
+    shapeStart    = { x: pos.x, y: pos.y };
+    shapeSnapshot = ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+    return;
+  }
   if (activeTool === 'zoom') { doZoom(e.altKey ? -0.2 : 0.2); return; }
   if (activeTool === 'text') { e.preventDefault(); placeText(pos.x, pos.y); return; }
 
@@ -1157,6 +1164,14 @@ drawCanvas.addEventListener('mousemove', e => {
     ctx.lineTo(pos.x, pos.y); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
     ctx.globalCompositeOperation = 'source-over';
+  } else if (activeTool === 'move') {
+    ctx.putImageData(shapeSnapshot, 0, 0);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(shapeStart.x, shapeStart.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
   } else if (activeTool === 'rectangle') {
     ctx.putImageData(shapeSnapshot, 0, 0);
     ctx.lineWidth = 2;
