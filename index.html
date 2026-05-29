@@ -979,7 +979,7 @@ function renderGallery() {
     fEl.innerHTML = `
       <div class="g-folder-hd">
         <div class="g-icon-cell">
-          <div class="g-icon-wrap"><img class="g-folder-icon" src="Assets/FolderOpenIcon.svg" alt=""></div>
+          <div class="g-icon-wrap"><img class="g-folder-icon" src="Assets/FolderClosedIcon.svg" alt=""></div>
         </div>
         <div class="g-chev-cell"><img class="g-chev open" src="Assets/ChevronRight.svg" alt=""></div>
         <div class="g-folder-name">${folder.name}</div>
@@ -992,8 +992,8 @@ function renderGallery() {
       const isOpen = fEl.classList.contains('open');
       fEl.querySelector('.g-chev').classList.toggle('open', isOpen);
       fEl.querySelector('.g-folder-icon').src = isOpen
-        ? 'Assets/FolderOpenIcon.svg'
-        : 'Assets/FolderClosedIcon.svg';
+        ? 'Assets/FolderClosedIcon.svg'
+        : 'Assets/FolderOpenIcon.svg';
     });
 
     const items = fEl.querySelector('.g-folder-items');
