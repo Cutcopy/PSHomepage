@@ -536,6 +536,92 @@ body.dark .form-group input,body.dark .form-group textarea{
   background:#14171f;border-color:#444;color:white;
 }
 body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
+
+/* ===== MOBILE ===== */
+#panel-toggle-btn{display:none;}
+#sidebar-handle{display:none;}
+#mobile-bottom-bar{display:none;}
+#sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:140;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+#sidebar-backdrop.show{opacity:1;pointer-events:auto;}
+
+/* ── Tablet < 900px: compress left toolbar, slide-in right panel ── */
+@media(max-width:900px){
+  #left-sidebar{width:58px;min-width:58px;}
+  .logo{width:36px;height:42px;margin-top:12px;}
+  .toolbar-grid{grid-template-columns:repeat(1,39px);margin-top:18px;}
+  .color-swatches{align-self:center;}
+  #right-sidebar{
+    position:fixed;top:0;right:0;bottom:0;
+    z-index:150;width:300px;min-width:300px;
+    transform:translateX(110%);
+    transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    box-shadow:-6px 0 28px rgba(0,0,0,0.25);
+    padding-top:0;
+  }
+  #right-sidebar.sidebar-open{transform:translateX(0);}
+  #sidebar-backdrop{display:block;}
+  #sidebar-handle{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 14px 8px;flex-shrink:0;
+    border-bottom:1px solid rgba(40,43,51,0.12);
+  }
+  .handle-pill{width:36px;height:4px;background:rgba(40,43,51,0.2);border-radius:2px;flex-shrink:0;}
+  #sidebar-close-btn{font-size:22px;line-height:1;background:none;border:none;cursor:pointer;color:#282b33;font-family:inherit;padding:0 4px;}
+  #panel-toggle-btn{display:flex;margin-left:auto;}
+}
+
+/* ── Mobile < 600px: full canvas + bottom toolbar + bottom sheet ── */
+@media(max-width:600px){
+  #left-sidebar{display:none;}
+  #canvas-container{padding:10px 10px 68px;}
+  .menu-item{font-size:11px;padding:5px 7px;}
+  #right-sidebar{
+    top:auto;bottom:0;left:0;right:0;
+    width:100%;min-width:100%;max-height:75vh;
+    border-radius:16px 16px 0 0;
+    transform:translateY(110%);
+    box-shadow:0 -6px 28px rgba(0,0,0,0.25);
+    overflow-y:auto;
+  }
+  #right-sidebar.sidebar-open{transform:translateY(0);}
+  #sidebar-handle{justify-content:center;border-bottom:none;padding:10px 16px 6px;cursor:grab;}
+  #sidebar-close-btn{display:none;}
+  .handle-pill{width:44px;}
+  #footer{display:none;}
+  #mobile-bottom-bar{
+    display:flex;position:fixed;bottom:0;left:0;right:0;height:56px;
+    align-items:center;justify-content:space-around;
+    padding:0 6px;z-index:100;
+    background:#b1eee5;
+    border-top:1px solid rgba(40,43,51,0.15);
+  }
+}
+
+/* Mobile toolbar buttons */
+.mob-tool-btn{
+  width:44px;height:44px;border:none;border-radius:8px;
+  background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;transition:background 0.12s;
+}
+.mob-tool-btn img{width:22px;height:22px;object-fit:contain;pointer-events:none;}
+.mob-tool-btn.selected{background:rgba(255,255,255,0.6);}
+.mob-tool-btn:active{background:rgba(255,255,255,0.8);}
+#mob-panels-btn{
+  width:44px;height:44px;flex-shrink:0;
+  border:1.5px solid rgba(40,43,51,0.3);border-radius:8px;
+  background:rgba(255,255,255,0.25);cursor:pointer;font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* Dark mode mobile */
+body.dark #mobile-bottom-bar{background:#14171f;border-top-color:#282b33;}
+body.dark .mob-tool-btn img{filter:brightness(0) invert(1);}
+body.dark .mob-tool-btn.selected{background:rgba(255,255,255,0.15);}
+body.dark #mob-panels-btn{border-color:#444;color:white;}
+body.dark #sidebar-close-btn{color:white;}
+body.dark .handle-pill{background:rgba(255,255,255,0.2);}
+body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
 </style>
 </head>
 <body class="tool-brush">
@@ -618,6 +704,10 @@ body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
         </div>
         <div class="menu-item" id="about-btn">About</div>
         <div class="menu-item" id="contact-btn">Contact</div>
+        <!-- Mobile only: opens the panel drawer -->
+        <button class="menu-item" id="panel-toggle-btn" title="Panels">
+          <svg width="16" height="13" viewBox="0 0 16 13" fill="currentColor"><rect y="0" width="16" height="2" rx="1"/><rect y="5.5" width="16" height="2" rx="1"/><rect y="11" width="16" height="2" rx="1"/></svg>
+        </button>
       </nav>
 
       <!-- TEXT TOOLBAR (shown only when text tool active) -->
@@ -657,6 +747,11 @@ body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
 
     <!-- RIGHT SIDEBAR — full height, sits flush against top -->
     <aside id="right-sidebar">
+      <!-- Mobile drag handle / close button -->
+      <div id="sidebar-handle">
+        <div class="handle-pill"></div>
+        <button id="sidebar-close-btn">×</button>
+      </div>
 
           <!-- COLOR PANEL -->
           <div class="panel" id="color-panel">
@@ -766,6 +861,21 @@ body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
   </footer>
 
 </div><!-- /app -->
+
+<!-- Mobile backdrop overlay -->
+<div id="sidebar-backdrop"></div>
+
+<!-- Mobile bottom toolbar (< 600px) -->
+<div id="mobile-bottom-bar">
+  <button class="mob-tool-btn selected" data-tool="brush"><img src="Assets/BrushTool.svg" alt="Brush"></button>
+  <button class="mob-tool-btn" data-tool="pen"><img src="Assets/PenTool.svg" alt="Pen"></button>
+  <button class="mob-tool-btn" data-tool="eraser"><img src="Assets/Eraser.svg" alt="Eraser"></button>
+  <button class="mob-tool-btn" data-tool="text"><img src="Assets/TypeTool.svg" alt="Text"></button>
+  <button class="mob-tool-btn" data-tool="move"><img src="Assets/linetool.svg" alt="Line"></button>
+  <button class="mob-tool-btn" data-tool="hand"><img src="Assets/handtool.svg" alt="Pan"></button>
+  <button class="mob-tool-btn" data-tool="eyedropper"><img src="Assets/EyedropperTool.svg" alt="Pick"></button>
+  <button id="mob-panels-btn" title="Panels">&#9783;</button>
+</div>
 
 <script>
 // ================================================================
@@ -1881,14 +1991,94 @@ renderGallery();
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     initColorPicker();
-    activateSwatch('fg'); // fg starts as the active swatch
-    // Pre-size the canvas so drawing tools work before an image is loaded
+    activateSwatch('fg');
     const w = canvasInner.clientWidth  || 600;
     const h = canvasInner.clientHeight || 500;
     drawCanvas.width  = w;
     drawCanvas.height = h;
   });
 });
+
+// ================================================================
+// MOBILE
+// ================================================================
+
+// --- Sidebar panel open/close ---
+function openSidebar() {
+  document.getElementById('right-sidebar').classList.add('sidebar-open');
+  document.getElementById('sidebar-backdrop').classList.add('show');
+}
+function closeSidebar() {
+  const sb = document.getElementById('right-sidebar');
+  sb.style.transform = '';
+  sb.classList.remove('sidebar-open');
+  document.getElementById('sidebar-backdrop').classList.remove('show');
+}
+
+document.getElementById('panel-toggle-btn').addEventListener('click', () => {
+  document.getElementById('right-sidebar').classList.contains('sidebar-open')
+    ? closeSidebar() : openSidebar();
+});
+document.getElementById('mob-panels-btn').addEventListener('click', openSidebar);
+document.getElementById('sidebar-close-btn').addEventListener('click', closeSidebar);
+document.getElementById('sidebar-backdrop').addEventListener('click', closeSidebar);
+
+// Swipe down to dismiss (mobile bottom-sheet)
+let mobDragY = 0;
+const mobSidebar = document.getElementById('right-sidebar');
+mobSidebar.addEventListener('touchstart', e => { mobDragY = e.touches[0].clientY; }, { passive: true });
+mobSidebar.addEventListener('touchmove', e => {
+  if (window.innerWidth >= 600) return;
+  const dy = e.touches[0].clientY - mobDragY;
+  if (dy > 0) mobSidebar.style.transform = `translateY(${Math.min(dy, 300)}px)`;
+}, { passive: true });
+mobSidebar.addEventListener('touchend', e => {
+  if (window.innerWidth >= 600) return;
+  const dy = e.changedTouches[0].clientY - mobDragY;
+  dy > 90 ? closeSidebar() : (mobSidebar.style.transform = '');
+});
+
+// --- Mobile bottom toolbar ---
+document.getElementById('mobile-bottom-bar').addEventListener('click', e => {
+  const btn = e.target.closest('.mob-tool-btn');
+  if (!btn) return;
+  document.querySelectorAll('.mob-tool-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  activeTool = btn.dataset.tool;
+  document.body.className = `tool-${activeTool}${darkMode ? ' dark' : ''}`;
+  showTextBar(activeTool === 'text');
+  if (activeTool !== 'text') { const el = document.getElementById('active-text-el'); if (el) el.blur(); }
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.toggle('selected', b.dataset.tool === activeTool));
+});
+
+// --- Pinch-to-zoom on canvas ---
+let pinchDist0 = 0, pinchScale0 = 1, pinching = false;
+canvasContainer.addEventListener('touchstart', e => {
+  if (e.touches.length === 2) {
+    pinching = true;
+    pinchDist0 = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    pinchScale0 = canvasScale;
+  }
+}, { passive: true });
+canvasContainer.addEventListener('touchmove', e => {
+  if (e.touches.length === 2 && pinching) {
+    e.preventDefault();
+    const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    canvasScale = Math.max(0.25, Math.min(4, pinchScale0 * (d / pinchDist0)));
+    canvasInner.style.transform = `scale(${canvasScale})`;
+    document.getElementById('zoom-label').textContent = Math.round(canvasScale * 100) + '%';
+  }
+}, { passive: false });
+canvasContainer.addEventListener('touchend', () => { pinching = false; });
+
+// Prevent drawing when using two fingers (pinch/pan should take over)
+drawCanvas.removeEventListener('touchstart', drawCanvas._touchstart);
+drawCanvas.addEventListener('touchstart', drawCanvas._touchstart = e => {
+  if (e.touches.length > 1) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  drawCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: t.clientX, clientY: t.clientY }));
+}, { passive: false });
 </script>
 </body>
 </html>
