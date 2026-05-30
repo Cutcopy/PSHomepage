@@ -163,8 +163,7 @@ a{text-decoration:none;color:inherit;}
 .tt-btn.active{background:#39d3bd;}
 .tt-hint{font-size:11px;color:rgba(40,43,51,0.5);margin-left:4px;user-select:none;}
 
-/* ===== WORKSPACE ===== */
-#workspace{flex:1;display:flex;overflow:hidden;min-height:0;}
+/* #workspace removed — canvas-container is now a direct child of #center-right */
 
 /* ===== CANVAS AREA ===== */
 #canvas-container{
@@ -207,9 +206,11 @@ a{text-decoration:none;color:inherit;}
 #right-sidebar{
   width:297px;min-width:297px;flex-shrink:0;
   display:flex;flex-direction:column;gap:10px;
-  padding:7px 7px 7px 0;
+  padding:7px;
   overflow-y:auto;
+  border-left:2px solid white;
 }
+body.dark #right-sidebar{border-left-color:#282b33;}
 .panel{
   background:#b1eee5;
   border:2px solid white;border-radius:5px;
@@ -638,11 +639,8 @@ body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
         <span class="tt-hint">Click canvas to place · Enter for new line · Esc to cancel</span>
       </div>
 
-      <!-- WORKSPACE -->
-      <div id="workspace">
-
-        <!-- CANVAS -->
-        <div id="canvas-container">
+      <!-- CANVAS -->
+      <div id="canvas-container">
           <div id="canvas-inner">
             <div id="canvas-placeholder">
               <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
@@ -657,27 +655,26 @@ body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
           </div>
         </div>
 
-        <!-- RIGHT SIDEBAR -->
-        <aside id="right-sidebar">
+    </div><!-- /center-right -->
+
+    <!-- RIGHT SIDEBAR — full height, sits flush against top -->
+    <aside id="right-sidebar">
 
           <!-- COLOR PANEL -->
           <div class="panel" id="color-panel">
             <div style="padding:10px;">
               <div class="panel-header">Color</div>
               <div style="height:8px;"></div>
-              <!-- 2D Saturation/Brightness picker -->
               <div id="sv-wrap">
                 <canvas id="sv-canvas"></canvas>
                 <div id="sv-cursor"></div>
               </div>
               <div style="height:6px;"></div>
-              <!-- Hue strip -->
               <div id="hue-wrap">
                 <canvas id="hue-canvas"></canvas>
                 <div id="hue-cursor-el"></div>
               </div>
               <div style="height:10px;"></div>
-              <!-- RGB sliders -->
               <div class="rgb-row">
                 <span class="rgb-label">R</span>
                 <input type="range" class="rgb-slider" id="r-slider" min="0" max="255" value="57">
@@ -693,7 +690,6 @@ body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
                 <input type="range" class="rgb-slider" id="b-slider" min="0" max="255" value="199">
                 <input type="number" class="rgb-num" id="b-num" min="0" max="255" value="199">
               </div>
-              <!-- Hex input -->
               <div class="hex-row">
                 <span class="rgb-label">#</span>
                 <input type="text" id="hex-input" class="hex-field" maxlength="6" spellcheck="false">
@@ -714,7 +710,6 @@ body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
             <div style="padding:8px;">
               <div class="work-top">
                 <div class="panel-header">Work</div>
-
                 <div class="work-ctrl" id="opacity-ctrl">
                   <img class="ic" src="Assets/Opacity Icon.svg" alt="">
                   <span id="opacity-label">100%</span>
@@ -732,7 +727,6 @@ body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
                     <div class="work-dd-item" data-val="10">10%</div>
                   </div>
                 </div>
-
                 <div class="work-ctrl" id="blend-ctrl">
                   <span id="blend-label">Normal</span>
                   <img class="chev" src="Assets/ChevronDown.svg" alt="">
@@ -756,25 +750,22 @@ body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
                   </div>
                 </div>
               </div>
-
               <div id="gallery-list"></div>
             </div>
           </div>
 
-        </aside>
-      </div><!-- /workspace -->
+    </aside>
 
-      <!-- FOOTER -->
-      <footer id="footer">
-        <div id="zoom-indicator">
-          <img src="Assets/Zoom.svg" alt="">
-          <span id="zoom-label">100%</span>
-        </div>
-        <div id="copyright">©2026 Bryce Stradling</div>
-      </footer>
-
-    </div><!-- /center-right -->
   </div><!-- /top-content -->
+
+  <!-- FOOTER — full width across entire page -->
+  <footer id="footer">
+    <div id="zoom-indicator">
+      <img src="Assets/Zoom.svg" alt="">
+      <span id="zoom-label">100%</span>
+    </div>
+    <div id="copyright">©2026 Bryce Stradling</div>
+  </footer>
 
 </div><!-- /app -->
 
