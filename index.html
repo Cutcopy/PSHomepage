@@ -169,7 +169,7 @@ a{text-decoration:none;color:inherit;}
 #canvas-container{
   flex:1;overflow:auto;
   display:flex;align-items:flex-start;justify-content:center;
-  padding:20px;background:#67dbca;
+  padding:16px;background:#67dbca;
   min-width:0;
 }
 #canvas-inner{
@@ -400,7 +400,7 @@ a{text-decoration:none;color:inherit;}
 }
 #zoom-indicator{
   background:#b1eee5;border-right:1px solid white;
-  height:25px;min-width:112px;
+  height:25px;min-width:115px;
   display:flex;align-items:center;gap:6px;
   padding:0 12px;font-size:14px;font-weight:300;
   cursor:pointer;flex-shrink:0;
@@ -575,7 +575,7 @@ body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
 /* ── Mobile < 600px: full canvas + bottom toolbar + bottom sheet ── */
 @media(max-width:600px){
   #left-sidebar{display:none;}
-  #canvas-container{padding:10px 10px 68px;}
+  #canvas-container{padding:6px 6px 68px;}
   .menu-item{font-size:11px;padding:5px 7px;}
   #right-sidebar{
     top:auto;bottom:0;left:0;right:0;
@@ -1116,6 +1116,16 @@ const ABOUT_TEXT = `
 `;
 
 // ================================================================
+// HELPERS
+// ================================================================
+// Returns the usable pixel width for the canvas inside its container,
+// accounting for padding and leaving a small breathing gap.
+function availCanvasWidth() {
+  const gap = window.innerWidth <= 600 ? 16 : 40; // tighter on mobile
+  return Math.max(canvasContainer.clientWidth - gap, 200);
+}
+
+// ================================================================
 // STATE
 // ================================================================
 let activeTool = 'brush';
@@ -1245,8 +1255,7 @@ function loadProject(images) {
     img.style.cssText = 'display:block;width:100%;height:auto;vertical-align:top;';
     img.onload = () => {
       if (!firstWidth) {
-        const availW = canvasContainer.clientWidth - 20; // minus padding
-        firstWidth = Math.min(img.naturalWidth || 800, 800, availW > 50 ? availW : 800);
+        firstWidth = Math.min(img.naturalWidth || 1400, availCanvasWidth());
         canvasInner.style.width = firstWidth + 'px';
       }
       pending--;
@@ -1460,9 +1469,8 @@ function floodFill(sx, sy) {
 // Ensure canvas has dimensions before drawing (for text tool use without an image)
 function ensureCanvasReady() {
   if (drawCanvas.width > 0 && drawCanvas.height > 0) return;
-  const availW = canvasContainer.clientWidth - 20;
-  const w = Math.min(canvasInner.clientWidth || 600, availW > 50 ? availW : 600);
-  const h = canvasInner.clientHeight || 500;
+  const w = availCanvasWidth();
+  const h = Math.max(canvasInner.clientHeight || 0, 500);
   drawCanvas.width  = w;
   drawCanvas.height = h;
   canvasInner.style.width  = w + 'px';
@@ -2239,9 +2247,8 @@ requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     initColorPicker();
     activateSwatch('fg');
-    const availW = canvasContainer.clientWidth - 20;
-    const w = Math.min(canvasInner.clientWidth || 600, availW > 50 ? availW : 600);
-    const h = canvasInner.clientHeight || 500;
+    const w = availCanvasWidth();
+    const h = Math.max(canvasInner.clientHeight || 0, 500);
     canvasInner.style.width  = w + 'px';
     canvasInner.style.height = h + 'px';
     drawCanvas.width  = w;
