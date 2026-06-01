@@ -460,6 +460,7 @@ a{text-decoration:none;color:inherit;}
 .tool-eraser #draw-canvas{cursor:cell;}
 .tool-text #draw-canvas{cursor:text;}
 .tool-fill #draw-canvas{cursor:copy;}
+.tool-pen #draw-canvas,.tool-pen #canvas-inner{cursor:crosshair;}
 
 /* ===== SCROLLBARS ===== */
 ::-webkit-scrollbar{width:5px;height:5px;}
@@ -741,6 +742,7 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
             </div>
             <img id="project-image" style="display:none;" referrerpolicy="no-referrer" alt="">
             <canvas id="draw-canvas" style="display:none;"></canvas>
+            <canvas id="pen-canvas" style="position:absolute;top:0;left:0;z-index:3;pointer-events:none;"></canvas>
           </div>
         </div>
 
@@ -1232,6 +1234,7 @@ function loadProject(images) {
       drawCanvas.width  = w;
       drawCanvas.height = h;
       drawCanvas.style.display = 'block';
+      penResize();
       applyImageSettings();
     });
   };
@@ -1290,8 +1293,21 @@ canvasInner.addEventListener('mousedown', e => {
   } else if (activeTool === 'eyedropper') {
     e.preventDefault();
     openEyeDropper(x, y);
+  } else if (activeTool === 'pen') {
+    e.preventDefault();
+    ensureCanvasReady(); penResize();
+    penDown(x, y, e);
+    e.stopPropagation();
   }
 });
+
+// Pen tool needs mousemove / mouseup anywhere (not just on draw-canvas)
+document.addEventListener('mousemove', e => {
+  if (activeTool !== 'pen' || !penCanvas.width) return;
+  const rect = drawCanvas.getBoundingClientRect();
+  penMove((e.clientX - rect.left) / canvasScale, (e.clientY - rect.top) / canvasScale, e);
+});
+document.addEventListener('mouseup', () => { if (activeTool === 'pen') penUp(); });
 
 drawCanvas.addEventListener('mousedown', e => {
   const pos = getPos(e);
@@ -1306,6 +1322,7 @@ drawCanvas.addEventListener('mousedown', e => {
   }
   if (activeTool === 'zoom') { doZoom(e.altKey ? -0.2 : 0.2); return; }
   if (activeTool === 'text') { e.preventDefault(); placeText(pos.x, pos.y); return; }
+  if (activeTool === 'pen')  { penDown(pos.x, pos.y, e); return; }
 
   isDrawing = true;
   lastX = pos.x; lastY = pos.y;
@@ -1320,8 +1337,9 @@ drawCanvas.addEventListener('mousedown', e => {
 });
 
 drawCanvas.addEventListener('mousemove', e => {
-  if (!isDrawing) return;
   const pos = getPos(e);
+  if (activeTool === 'pen') { penMove(pos.x, pos.y, e); return; }
+  if (!isDrawing) return;
   const { r, g, b } = drawColor;
   ctx.strokeStyle = `rgb(${r},${g},${b})`;
   ctx.fillStyle   = `rgb(${r},${g},${b})`;
@@ -1329,10 +1347,6 @@ drawCanvas.addEventListener('mousemove', e => {
 
   if (activeTool === 'brush') {
     ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.lineTo(pos.x, pos.y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
-  } else if (activeTool === 'pen') {
-    ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.lineTo(pos.x, pos.y); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
   } else if (activeTool === 'eraser') {
@@ -1381,7 +1395,7 @@ drawCanvas.addEventListener('mousemove', e => {
   lastX = pos.x; lastY = pos.y;
 });
 
-drawCanvas.addEventListener('mouseup',    () => { isDrawing = false; shapeSnapshot = null; });
+drawCanvas.addEventListener('mouseup',    () => { isDrawing = false; shapeSnapshot = null; penUp(); });
 drawCanvas.addEventListener('mouseleave', () => { isDrawing = false; });
 
 // Touch support
@@ -1454,6 +1468,7 @@ function ensureCanvasReady() {
   canvasInner.style.width  = w + 'px';
   canvasInner.style.height = h + 'px';
   drawCanvas.style.display = 'block';
+  penResize();
 }
 
 // Text tool
@@ -1786,8 +1801,8 @@ document.getElementById('toolbar-grid').addEventListener('click', e => {
   btn.classList.add('selected');
   activeTool = btn.dataset.tool;
   document.body.className = `tool-${activeTool}${darkMode ? ' dark' : ''}`;
-  // Show/hide text toolbar
   showTextBar(activeTool === 'text');
+  if (penCanvas.width) penRender(); // refresh handle visibility
   // Dismiss any open text input if switching away
   if (activeTool !== 'text') {
     const el = document.getElementById('active-text-el');
@@ -1817,6 +1832,8 @@ document.getElementById('file-menu').addEventListener('click', e => {
 
 document.getElementById('reset-btn').addEventListener('click', () => {
   ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  penNodes = []; penPaths = []; penClosed = false; penDrag = null;
+  if (penCanvas.width) penCtx.clearRect(0, 0, penCanvas.width, penCanvas.height);
   document.getElementById('file-dropdown').classList.add('hidden');
   document.getElementById('file-menu').classList.remove('open');
 });
@@ -1923,6 +1940,15 @@ function takeScreenshot() {
     t.globalAlpha = 1;
     t.globalCompositeOperation = 'source-over';
     t.drawImage(drawCanvas, 0, 0);
+    // Flatten pen paths into the export (without handles/anchors)
+    if (penCanvas.width) {
+      const tmp2 = document.createElement('canvas');
+      tmp2.width = t.canvas.width; tmp2.height = t.canvas.height;
+      const t2 = tmp2.getContext('2d');
+      penPaths.forEach(p => _penDrawPath(t2, p.nodes, p.closed, p.color, p.width));
+      if (penNodes.length > 1) _penDrawPath(t2, penNodes, penClosed, `rgb(${drawColor.r},${drawColor.g},${drawColor.b})`, 2);
+      t.drawImage(tmp2, 0, 0);
+    }
     const found = GALLERY.flatMap(f => f.items).find(i => i.id === selectedItemId);
     const link = document.createElement('a');
     link.download = (found ? found.name.replace(/\s+/g, '-') : 'canvas') + '.png';
@@ -1988,6 +2014,224 @@ document.getElementById('swatch-swap').addEventListener('click', () => {
 });
 
 // ================================================================
+// PEN TOOL — Bézier node editor (Phase 1 + 2)
+// ================================================================
+const penCanvas = document.getElementById('pen-canvas');
+const penCtx    = penCanvas.getContext('2d');
+
+let penNodes  = [];    // nodes in the active (being-drawn) path
+let penPaths  = [];    // committed paths: [{nodes, closed, color, width}]
+let penClosed = false; // is the active path closed?
+let penDrag   = null;  // current drag: {src, pathIdx, nodeIdx, part, lx, ly}
+let penHover  = null;  // {pathIdx, nodeIdx, part} under cursor
+let penCursor = null;  // {x,y} current mouse position (for live preview)
+
+const PEN_A = 5;   // anchor radius
+const PEN_H = 4;   // handle half-size
+const PEN_HIT = 10; // hit-test radius
+
+function penResize() {
+  if (!drawCanvas.width) return;
+  penCanvas.width  = drawCanvas.width;
+  penCanvas.height = drawCanvas.height;
+  penRender();
+}
+
+function penHitTest(x, y) {
+  const all = [
+    ...penPaths.map((p, i) => ({ pi: i, nodes: p.nodes })),
+    ...(penNodes.length ? [{ pi: -1, nodes: penNodes }] : [])
+  ];
+  for (const { pi, nodes } of all) {
+    for (let ni = 0; ni < nodes.length; ni++) {
+      const n = nodes[ni];
+      if (Math.hypot(x - n.x, y - n.y) <= PEN_HIT)
+        return { pathIdx: pi, nodeIdx: ni, part: 'anchor' };
+      if (n.handleIn && Math.hypot(x - n.handleIn.x, y - n.handleIn.y) <= PEN_HIT)
+        return { pathIdx: pi, nodeIdx: ni, part: 'handleIn' };
+      if (n.handleOut && Math.hypot(x - n.handleOut.x, y - n.handleOut.y) <= PEN_HIT)
+        return { pathIdx: pi, nodeIdx: ni, part: 'handleOut' };
+    }
+  }
+  return null;
+}
+
+function penRender() {
+  if (!penCanvas.width) return;
+  penCtx.clearRect(0, 0, penCanvas.width, penCanvas.height);
+  const showHandles = activeTool === 'pen';
+  const { r, g, b } = drawColor;
+  const activeColor = `rgb(${r},${g},${b})`;
+
+  penPaths.forEach((p, pi) => {
+    _penDrawPath(penCtx, p.nodes, p.closed, p.color, p.width);
+    if (showHandles) _penDrawHandles(penCtx, p.nodes, pi);
+  });
+
+  if (penNodes.length > 0) {
+    if (penNodes.length > 1) _penDrawPath(penCtx, penNodes, penClosed, activeColor, 2);
+    if (showHandles) _penDrawHandles(penCtx, penNodes, -1);
+
+    // Live preview segment from last node to cursor
+    if (!penClosed && penCursor && !penDrag && penNodes.length >= 1) {
+      const last = penNodes[penNodes.length - 1];
+      penCtx.save();
+      penCtx.strokeStyle = activeColor;
+      penCtx.lineWidth = 1.5;
+      penCtx.setLineDash([4, 4]);
+      penCtx.globalAlpha = 0.6;
+      penCtx.beginPath();
+      penCtx.moveTo(last.x, last.y);
+      penCtx.bezierCurveTo(
+        last.handleOut?.x ?? last.x, last.handleOut?.y ?? last.y,
+        penCursor.x, penCursor.y,
+        penCursor.x, penCursor.y
+      );
+      penCtx.stroke();
+      penCtx.restore();
+    }
+  }
+}
+
+function _penDrawPath(ctx2, nodes, closed, color, width) {
+  if (nodes.length < 2) return;
+  ctx2.save();
+  ctx2.strokeStyle = color; ctx2.lineWidth = width || 2;
+  ctx2.lineCap = 'round'; ctx2.lineJoin = 'round';
+  ctx2.beginPath();
+  ctx2.moveTo(nodes[0].x, nodes[0].y);
+  const count = closed ? nodes.length : nodes.length - 1;
+  for (let i = 0; i < count; i++) {
+    const a = nodes[i], b = nodes[(i + 1) % nodes.length];
+    ctx2.bezierCurveTo(
+      a.handleOut?.x ?? a.x, a.handleOut?.y ?? a.y,
+      b.handleIn?.x  ?? b.x, b.handleIn?.y  ?? b.y,
+      b.x, b.y
+    );
+  }
+  if (closed) ctx2.closePath();
+  ctx2.stroke();
+  ctx2.restore();
+}
+
+function _penDrawHandles(ctx2, nodes, pathIdx) {
+  nodes.forEach((n, ni) => {
+    const isHov = penHover?.pathIdx === pathIdx && penHover?.nodeIdx === ni;
+    ['handleIn','handleOut'].forEach(part => {
+      if (!n[part]) return;
+      ctx2.save();
+      ctx2.strokeStyle = 'rgba(40,43,51,0.4)'; ctx2.lineWidth = 1;
+      ctx2.setLineDash([2, 3]);
+      ctx2.beginPath(); ctx2.moveTo(n.x, n.y); ctx2.lineTo(n[part].x, n[part].y); ctx2.stroke();
+      ctx2.setLineDash([]); ctx2.restore();
+      const hh = isHov && penHover?.part === part;
+      const s  = hh ? PEN_H + 2 : PEN_H;
+      ctx2.fillStyle = hh ? '#24afff' : 'white';
+      ctx2.fillRect(n[part].x - s, n[part].y - s, s*2, s*2);
+      ctx2.strokeStyle = '#282b33'; ctx2.lineWidth = 1.5;
+      ctx2.strokeRect(n[part].x - s, n[part].y - s, s*2, s*2);
+    });
+
+    const willClose = pathIdx === -1 && ni === 0 && penNodes.length > 1 &&
+                      penHover?.pathIdx === -1 && penHover?.nodeIdx === 0 && penHover?.part === 'anchor';
+    const r2 = (isHov && penHover?.part === 'anchor') ? PEN_A + 2 : PEN_A;
+    ctx2.beginPath(); ctx2.arc(n.x, n.y, r2, 0, Math.PI*2);
+    ctx2.fillStyle = willClose ? '#39d3bd' : (isHov && penHover?.part === 'anchor') ? '#24afff' : 'white';
+    ctx2.fill();
+    ctx2.strokeStyle = '#282b33'; ctx2.lineWidth = 1.5; ctx2.stroke();
+  });
+}
+
+function penCommit() {
+  if (penNodes.length < 2) { penNodes = []; penClosed = false; penRender(); return; }
+  const { r, g, b } = drawColor;
+  penPaths.push({
+    nodes: penNodes.map(n => ({
+      x: n.x, y: n.y, type: n.type,
+      handleIn:  n.handleIn  ? {...n.handleIn}  : null,
+      handleOut: n.handleOut ? {...n.handleOut} : null
+    })),
+    closed: penClosed, color: `rgb(${r},${g},${b})`, width: 2
+  });
+  penNodes = []; penClosed = false; penRender();
+}
+
+// Called from mousedown on canvas
+function penDown(x, y, e) {
+  const hit = penHitTest(x, y);
+
+  if (hit) {
+    // Click first anchor of active path → close it
+    if (hit.pathIdx === -1 && hit.nodeIdx === 0 && hit.part === 'anchor' && penNodes.length >= 2) {
+      penClosed = true; penCommit(); return;
+    }
+    penDrag = { ...hit, lx: x, ly: y }; penRender(); return;
+  }
+
+  // Place new anchor
+  const n = { x, y, type: e?.altKey ? 'corner' : 'smooth', handleIn: null, handleOut: null };
+  penNodes.push(n);
+  penDrag = { src: 'new', pathIdx: -1, nodeIdx: penNodes.length - 1, lx: x, ly: y };
+  penRender();
+}
+
+function penMove(x, y, e) {
+  penCursor = { x, y };
+  penHover  = penHitTest(x, y);
+
+  if (penDrag && (e?.buttons === 1)) {
+    const nodes = penDrag.pathIdx === -1 ? penNodes : penPaths[penDrag.pathIdx]?.nodes;
+    if (nodes) {
+      const n = nodes[penDrag.nodeIdx];
+      if (n) {
+        const dx = x - penDrag.lx, dy = y - penDrag.ly;
+        penDrag.lx = x; penDrag.ly = y;
+
+        if (penDrag.src === 'new' || penDrag.part === 'handleOut') {
+          n.handleOut = { x, y };
+          if (n.type === 'smooth') n.handleIn = { x: 2*n.x - x, y: 2*n.y - y };
+        } else if (penDrag.part === 'handleIn') {
+          n.handleIn = { x, y };
+          if (n.type === 'smooth') n.handleOut = { x: 2*n.x - x, y: 2*n.y - y };
+        } else if (penDrag.part === 'anchor') {
+          n.x += dx; n.y += dy;
+          if (n.handleIn)  { n.handleIn.x  += dx; n.handleIn.y  += dy; }
+          if (n.handleOut) { n.handleOut.x += dx; n.handleOut.y += dy; }
+        }
+      }
+    }
+  }
+
+  penRender();
+
+  // Cursor hint
+  if (drawCanvas.style) {
+    drawCanvas.style.cursor = penHover
+      ? (penHover.part === 'anchor' && penHover.pathIdx === -1 && penHover.nodeIdx === 0 && penNodes.length > 1 ? 'cell' : 'move')
+      : 'crosshair';
+  }
+}
+
+function penUp() {
+  penDrag = null; penRender();
+}
+
+// Keyboard: Enter commits, Escape commits, Delete removes hovered anchor
+document.addEventListener('keydown', e => {
+  if (activeTool !== 'pen') return;
+  if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); penCommit(); }
+  if ((e.key === 'Delete' || e.key === 'Backspace') && penHover?.part === 'anchor') {
+    e.preventDefault();
+    const nodes = penHover.pathIdx === -1 ? penNodes : penPaths[penHover.pathIdx]?.nodes;
+    if (nodes) {
+      nodes.splice(penHover.nodeIdx, 1);
+      if (penHover.pathIdx >= 0 && nodes.length < 2) penPaths.splice(penHover.pathIdx, 1);
+      penHover = null; penRender();
+    }
+  }
+});
+
+// ================================================================
 // INIT
 // ================================================================
 renderGallery();
@@ -2000,6 +2244,7 @@ requestAnimationFrame(() => {
     const h = canvasInner.clientHeight || 500;
     drawCanvas.width  = w;
     drawCanvas.height = h;
+    penResize();
   });
 });
 
