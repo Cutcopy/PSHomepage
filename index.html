@@ -1009,7 +1009,7 @@ const GALLERY = [
         name: 'Tread Flightly',
         thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/7c5eef139155907.Y3JvcCw4MDgsNjMyLDAsMA.png',
         url: 'https://www.behance.net/gallery/139155907/Tread-Flightly',
-        info: 'Client: Tread Flightly\nProject: Brand & E-Commerce Experience\nGoal: Build a sustainable footwear brand with an e-commerce experience that communicates eco-friendly values and premium quality.',
+        info: 'Client: Tread Flightly\nProject: Brand & E-Commerce Experience\nGoal: Personal Project that explores sustainable branding and e-commerce design.',
         images: [
           'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200_webp/7f49e0139155907.622a744ba62d2.png',
           'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200_webp/098be3139155907.622a744ba6c9d.png',
@@ -1275,13 +1275,15 @@ function loadProject(images) {
 }
 
 // ================================================================
-// IMAGE SETTINGS
+// CANVAS LAYER SETTINGS — opacity + blend mode apply to the drawing/pen layers
 // ================================================================
 function applyImageSettings() {
-  const strip = document.getElementById('project-strip');
-  const target = strip || projectImage;
-  target.style.opacity      = imageOpacity;
-  target.style.mixBlendMode = imageBlend;
+  drawCanvas.style.opacity      = imageOpacity;
+  drawCanvas.style.mixBlendMode = imageBlend;
+  if (penCanvas) {
+    penCanvas.style.opacity      = imageOpacity;
+    penCanvas.style.mixBlendMode = imageBlend;
+  }
 }
 
 // ================================================================
