@@ -1373,7 +1373,12 @@ function loadProject(images) {
     img.style.cssText = 'display:block;width:100%;height:auto;vertical-align:top;';
     img.onload = () => {
       if (!firstWidth) {
-        firstWidth = Math.min(img.naturalWidth || 1400, availCanvasWidth());
+        // Use the image's natural width (up to 1400px) so detail is visible.
+        // The canvas-container scrolls horizontally if needed.
+        const naturalW = img.naturalWidth || 1400;
+        const minW     = availCanvasWidth(); // never narrower than the viewport
+        firstWidth = Math.max(naturalW, minW);
+        firstWidth = Math.min(firstWidth, 1400); // cap at 1400px
         canvasInner.style.width = firstWidth + 'px';
       }
       pending--;
