@@ -168,7 +168,7 @@ a{text-decoration:none;color:inherit;}
 /* ===== CANVAS AREA ===== */
 #canvas-container{
   flex:1;overflow:auto;
-  display:flex;align-items:flex-start;justify-content:center;
+  display:flex;align-items:stretch;justify-content:center;
   padding:16px;background:#67dbca;
   min-width:0;
 }
@@ -177,9 +177,11 @@ a{text-decoration:none;color:inherit;}
   border-radius:5px;
   box-shadow:0 0 8.8px rgba(40,43,51,0.5);
   background:white;
-  min-width:200px;min-height:200px;
+  min-width:200px;
   transform-origin:top center;
   flex-shrink:0;
+  /* fills the full container height when no image is loaded */
+  align-self:stretch;
 }
 #project-image{
   display:block;max-width:100%;position:relative;z-index:1;
@@ -1122,8 +1124,12 @@ const ABOUT_TEXT = `
 // Returns the usable pixel width for the canvas inside its container,
 // accounting for padding and leaving a small breathing gap.
 function availCanvasWidth() {
-  const gap = window.innerWidth <= 600 ? 16 : 40; // tighter on mobile
+  const gap = window.innerWidth <= 600 ? 16 : 40;
   return Math.max(canvasContainer.clientWidth - gap, 200);
+}
+function availCanvasHeight() {
+  const gap = window.innerWidth <= 600 ? 80 : 32; // account for mobile bottom toolbar padding
+  return Math.max(canvasContainer.clientHeight - gap, 300);
 }
 
 // ================================================================
@@ -1471,7 +1477,7 @@ function floodFill(sx, sy) {
 function ensureCanvasReady() {
   if (drawCanvas.width > 0 && drawCanvas.height > 0) return;
   const w = availCanvasWidth();
-  const h = Math.max(canvasInner.clientHeight || 0, 500);
+  const h = availCanvasHeight();
   drawCanvas.width  = w;
   drawCanvas.height = h;
   canvasInner.style.width  = w + 'px';
@@ -2249,7 +2255,7 @@ requestAnimationFrame(() => {
     initColorPicker();
     activateSwatch('fg');
     const w = availCanvasWidth();
-    const h = Math.max(canvasInner.clientHeight || 0, 500);
+    const h = availCanvasHeight();
     canvasInner.style.width  = w + 'px';
     canvasInner.style.height = h + 'px';
     drawCanvas.width  = w;
