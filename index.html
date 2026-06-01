@@ -298,6 +298,53 @@ a{text-decoration:none;color:inherit;}
 .rgb-num::-webkit-outer-spin-button{-webkit-appearance:none;}
 .rgb-num:focus{outline:none;border-color:#39d3bd;}
 
+/* Color history */
+#color-history-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+.ch-swatch{
+  width:18px;height:18px;border-radius:3px;cursor:pointer;flex-shrink:0;
+  border:1.5px solid rgba(40,43,51,0.25);transition:transform 0.1s;
+}
+.ch-swatch:hover{transform:scale(1.25);border-color:#282b33;}
+body.dark .ch-swatch{border-color:rgba(255,255,255,0.2);}
+
+/* Draw toolbar (size slider, shown for drawing tools) */
+#draw-toolbar{
+  flex-shrink:0;height:30px;
+  background:rgba(255,255,255,0.55);
+  border-bottom:1px solid rgba(40,43,51,0.15);
+  display:flex;align-items:center;gap:10px;padding:0 12px;
+}
+#draw-size-slider{
+  flex:1;max-width:140px;height:4px;border-radius:2px;
+  -webkit-appearance:none;appearance:none;cursor:pointer;
+  background:rgba(40,43,51,0.2);outline:none;border:none;
+}
+#draw-size-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:white;border:2px solid #282b33;box-shadow:0 1px 3px rgba(0,0,0,0.2);cursor:pointer;
+}
+#draw-size-val{
+  font-size:11px;font-weight:700;color:#282b33;width:28px;flex-shrink:0;
+}
+body.dark #draw-toolbar{background:rgba(20,23,31,0.95);border-bottom-color:rgba(255,255,255,0.1);}
+body.dark #draw-size-val{color:white;}
+body.dark #draw-size-slider{background:rgba(255,255,255,0.2);}
+
+/* Shortcuts modal */
+.shortcuts-table{width:100%;border-collapse:collapse;font-size:13px;}
+.shortcuts-table td{padding:5px 8px;vertical-align:top;}
+.shortcuts-table td:first-child{white-space:nowrap;}
+.shortcuts-table kbd{
+  display:inline-block;padding:2px 6px;background:#f0faf8;
+  border:1px solid #ccc;border-radius:4px;font-family:inherit;
+  font-size:11px;font-weight:700;
+}
+body.dark .shortcuts-table kbd{background:#1e2230;border-color:#444;color:white;}
+.shortcuts-table tr:nth-child(even){background:rgba(40,43,51,0.04);}
+.shortcut-section{font-size:12px;font-weight:700;color:rgba(40,43,51,0.5);
+  padding:8px 8px 2px;text-transform:uppercase;letter-spacing:1px;}
+body.dark .shortcut-section{color:rgba(255,255,255,0.4);}
+
 /* Hex input */
 .hex-row{display:flex;align-items:center;gap:8px;margin-top:2px;}
 .hex-field{
@@ -633,6 +680,49 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
 
 <div id="app">
 
+  <!-- ===== SHORTCUTS MODAL ===== -->
+  <div id="shortcuts-modal" class="modal-ov hidden">
+    <div class="modal-box" style="max-width:520px;">
+      <button class="modal-close" onclick="closeModal('shortcuts-modal')">×</button>
+      <div class="modal-title">Keyboard Shortcuts</div>
+      <div class="modal-body">
+        <div class="shortcut-section">Editing</div>
+        <table class="shortcuts-table">
+          <tr><td><kbd>Ctrl Z</kbd></td><td>Undo</td></tr>
+          <tr><td><kbd>Ctrl Y</kbd> / <kbd>Ctrl Shift Z</kbd></td><td>Redo</td></tr>
+          <tr><td><kbd>[ ]</kbd></td><td>Decrease / increase brush size</td></tr>
+          <tr><td><kbd>Ctrl C</kbd></td><td>Copy canvas to clipboard</td></tr>
+        </table>
+        <div class="shortcut-section">Pen Tool</div>
+        <table class="shortcuts-table">
+          <tr><td><kbd>Click</kbd></td><td>Place corner anchor</td></tr>
+          <tr><td><kbd>Click + Drag</kbd></td><td>Smooth anchor with handles</td></tr>
+          <tr><td><kbd>Alt + Click</kbd></td><td>Hard corner (no mirroring)</td></tr>
+          <tr><td><kbd>Click first anchor</kbd></td><td>Close path</td></tr>
+          <tr><td><kbd>Enter</kbd> / <kbd>Esc</kbd></td><td>Commit open path</td></tr>
+          <tr><td><kbd>Delete</kbd></td><td>Remove hovered anchor</td></tr>
+        </table>
+        <div class="shortcut-section">Zoom</div>
+        <table class="shortcuts-table">
+          <tr><td><kbd>Ctrl +</kbd></td><td>Zoom in</td></tr>
+          <tr><td><kbd>Ctrl −</kbd></td><td>Zoom out</td></tr>
+          <tr><td><kbd>Ctrl 0</kbd></td><td>Fit to window</td></tr>
+          <tr><td><kbd>Ctrl Scroll</kbd></td><td>Zoom in / out</td></tr>
+        </table>
+        <div class="shortcut-section">Text Tool</div>
+        <table class="shortcuts-table">
+          <tr><td><kbd>Enter</kbd></td><td>Commit text</td></tr>
+          <tr><td><kbd>Shift Enter</kbd></td><td>New line</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Cancel</td></tr>
+        </table>
+        <div class="shortcut-section">General</div>
+        <table class="shortcuts-table">
+          <tr><td><kbd>?</kbd></td><td>Show this dialog</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== ABOUT MODAL ===== -->
   <div id="about-modal" class="modal-ov hidden">
     <div class="modal-box">
@@ -704,7 +794,9 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
           <div id="file-dropdown" class="hidden">
             <div class="dd-item" id="reset-btn">Reset</div>
             <div class="dd-item" id="screenshot-btn">Screenshot</div>
+            <div class="dd-item" id="copy-btn">Copy to Clipboard</div>
             <div class="dd-item" id="dark-mode-btn">Dark Mode</div>
+            <div class="dd-item" id="shortcuts-btn">Shortcuts ?</div>
           </div>
         </div>
         <div class="menu-item" id="about-btn">About</div>
@@ -714,6 +806,14 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
           <svg width="16" height="13" viewBox="0 0 16 13" fill="currentColor"><rect y="0" width="16" height="2" rx="1"/><rect y="5.5" width="16" height="2" rx="1"/><rect y="11" width="16" height="2" rx="1"/></svg>
         </button>
       </nav>
+
+      <!-- DRAW TOOLBAR (size slider, shown for most drawing tools) -->
+      <div id="draw-toolbar" style="display:none;">
+        <label class="tt-label">Size</label>
+        <input type="range" id="draw-size-slider" min="1" max="60" value="4">
+        <span id="draw-size-val">4px</span>
+        <span class="tt-hint">[ ] to resize · Ctrl+Z undo · Ctrl+Y redo · ? for shortcuts</span>
+      </div>
 
       <!-- TEXT TOOLBAR (shown only when text tool active) -->
       <div id="text-toolbar" style="display:none;">
@@ -793,6 +893,8 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
                 <span class="rgb-label">#</span>
                 <input type="text" id="hex-input" class="hex-field" maxlength="6" spellcheck="false">
               </div>
+              <!-- Color history swatches -->
+              <div id="color-history-row"></div>
             </div>
           </div>
 
@@ -1218,6 +1320,8 @@ function selectGalleryItem(fid, iid) {
 
   selectedItemId = iid;
   document.getElementById('info-text').textContent = item.info;
+  // Clear undo stack for new project
+  undoStack = []; redoStack = [];
   loadProject(item.images && item.images.length ? item.images : [item.thumb]);
 }
 
@@ -1243,7 +1347,6 @@ function loadProject(images) {
 
   const finalize = () => {
     if (pending > 0) return;
-    // Let the browser render the strip, then size the draw-canvas to cover it
     requestAnimationFrame(() => {
       const w = strip.clientWidth  || firstWidth || 800;
       const h = strip.scrollHeight || strip.clientHeight || 600;
@@ -1253,10 +1356,18 @@ function loadProject(images) {
       drawCanvas.style.display = 'block';
       penResize();
       applyImageSettings();
+      loadCanvasState(); // restore any saved annotations for this project
     });
   };
 
-  images.forEach(src => {
+  // Lazy-load with IntersectionObserver — first image loads immediately, rest on scroll
+  const lazyObserver = 'IntersectionObserver' in window
+    ? new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.src = e.target.dataset.src; lazyObserver.unobserve(e.target); } });
+      }, { rootMargin: '400px' })
+    : null;
+
+  images.forEach((src, idx) => {
     const img = document.createElement('img');
     img.referrerPolicy = 'no-referrer';
     img.style.cssText = 'display:block;width:100%;height:auto;vertical-align:top;';
@@ -1269,7 +1380,14 @@ function loadProject(images) {
       finalize();
     };
     img.onerror = () => { pending--; finalize(); };
-    img.src = src;
+    // First image loads immediately; rest lazy-load as they scroll into view
+    if (idx === 0 || !lazyObserver) {
+      img.src = src;
+    } else {
+      img.dataset.src = src;
+      img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+      lazyObserver.observe(img);
+    }
     strip.appendChild(img);
   });
 }
@@ -1363,31 +1481,32 @@ drawCanvas.addEventListener('mousemove', e => {
   ctx.fillStyle   = `rgb(${r},${g},${b})`;
   ctx.globalCompositeOperation = 'source-over';
 
+  const sz = toolSize();
   if (activeTool === 'brush') {
-    ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.lineWidth = sz; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.lineTo(pos.x, pos.y); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
   } else if (activeTool === 'eraser') {
     ctx.globalCompositeOperation = 'destination-out';
-    ctx.lineWidth = 20; ctx.lineCap = 'round';
+    ctx.lineWidth = sz; ctx.lineCap = 'round';
     ctx.lineTo(pos.x, pos.y); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
     ctx.globalCompositeOperation = 'source-over';
   } else if (activeTool === 'move') {
     ctx.putImageData(shapeSnapshot, 0, 0);
     ctx.globalCompositeOperation = 'source-over';
-    ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.lineWidth = sz; ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(shapeStart.x, shapeStart.y);
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
   } else if (activeTool === 'rectangle') {
     ctx.putImageData(shapeSnapshot, 0, 0);
-    ctx.lineWidth = 2;
+    ctx.lineWidth = sz;
     ctx.strokeRect(shapeStart.x, shapeStart.y, pos.x - shapeStart.x, pos.y - shapeStart.y);
   } else if (activeTool === 'ellipse') {
     ctx.putImageData(shapeSnapshot, 0, 0);
-    ctx.lineWidth = 2;
+    ctx.lineWidth = sz;
     ctx.beginPath();
     ctx.ellipse(
       shapeStart.x + (pos.x - shapeStart.x) / 2,
@@ -1399,7 +1518,7 @@ drawCanvas.addEventListener('mousemove', e => {
     ctx.stroke();
   } else if (activeTool === 'polygon') {
     ctx.putImageData(shapeSnapshot, 0, 0);
-    ctx.lineWidth = 2;
+    ctx.lineWidth = sz;
     const cx = shapeStart.x + (pos.x - shapeStart.x) / 2;
     const cy = shapeStart.y + (pos.y - shapeStart.y) / 2;
     const rx = Math.abs(pos.x - shapeStart.x) / 2;
@@ -1413,7 +1532,10 @@ drawCanvas.addEventListener('mousemove', e => {
   lastX = pos.x; lastY = pos.y;
 });
 
-drawCanvas.addEventListener('mouseup',    () => { isDrawing = false; shapeSnapshot = null; penUp(); });
+drawCanvas.addEventListener('mouseup', () => {
+  if (isDrawing) saveUndoState(); // save before clearing isDrawing
+  isDrawing = false; shapeSnapshot = null; penUp();
+});
 drawCanvas.addEventListener('mouseleave', () => { isDrawing = false; });
 
 // Touch support
@@ -1772,6 +1894,11 @@ function initColorPicker() {
   drawSVCanvas();
   drawHueCanvas();
 
+  // Add mouseup listener to commit color to history after drag ends
+  const commitColor = () => addColorHistory(drawColor.r, drawColor.g, drawColor.b);
+  svWrap.addEventListener('mouseup',  commitColor);
+  hueWrap.addEventListener('mouseup', commitColor);
+
   makeDraggable(svWrap,   e => pickFromSV(e, svCanvas));
   makeDraggable(hueWrap,  e => pickFromHue(e, hueWrap));
 
@@ -1799,7 +1926,7 @@ function initColorPicker() {
   const hexEl = document.getElementById('hex-input');
   hexEl.addEventListener('change', () => {
     const rgb = hexToRgb(hexEl.value);
-    if (rgb) applyColor(rgb.r, rgb.g, rgb.b);
+    if (rgb) { applyColor(rgb.r, rgb.g, rgb.b); addColorHistory(rgb.r, rgb.g, rgb.b); }
     else hexEl.value = rgbToHex(drawColor.r, drawColor.g, drawColor.b);
   });
   hexEl.addEventListener('keydown', e => { if (e.key === 'Enter') hexEl.blur(); });
@@ -1819,7 +1946,8 @@ document.getElementById('toolbar-grid').addEventListener('click', e => {
   activeTool = btn.dataset.tool;
   document.body.className = `tool-${activeTool}${darkMode ? ' dark' : ''}`;
   showTextBar(activeTool === 'text');
-  if (penCanvas.width) penRender(); // refresh handle visibility
+  showDrawBar(DRAW_TOOLS.includes(activeTool));
+  if (penCanvas.width) penRender();
   // Dismiss any open text input if switching away
   if (activeTool !== 'text') {
     const el = document.getElementById('active-text-el');
@@ -1847,18 +1975,25 @@ document.getElementById('file-menu').addEventListener('click', e => {
   document.getElementById('file-menu').classList.toggle('open', !open);
 });
 
+function closeFileMenu() {
+  document.getElementById('file-dropdown').classList.add('hidden');
+  document.getElementById('file-menu').classList.remove('open');
+}
+
 document.getElementById('reset-btn').addEventListener('click', () => {
+  saveUndoState();
   ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
   penNodes = []; penPaths = []; penClosed = false; penDrag = null;
   if (penCanvas.width) penCtx.clearRect(0, 0, penCanvas.width, penCanvas.height);
-  document.getElementById('file-dropdown').classList.add('hidden');
-  document.getElementById('file-menu').classList.remove('open');
+  localStorage.removeItem('bry_canvas');
+  closeFileMenu();
 });
 
-document.getElementById('screenshot-btn').addEventListener('click', () => {
-  takeScreenshot();
-  document.getElementById('file-dropdown').classList.add('hidden');
-  document.getElementById('file-menu').classList.remove('open');
+document.getElementById('screenshot-btn').addEventListener('click', () => { takeScreenshot(); closeFileMenu(); });
+document.getElementById('copy-btn').addEventListener('click', () => { copyCanvasToClipboard(); closeFileMenu(); });
+document.getElementById('shortcuts-btn').addEventListener('click', () => {
+  document.getElementById('shortcuts-modal').classList.remove('hidden');
+  closeFileMenu();
 });
 
 let darkMode = false;
@@ -1936,63 +2071,16 @@ document.querySelectorAll('#blend-dd .work-dd-item').forEach(item => {
 });
 
 // ================================================================
-// SCREENSHOT
-// Reloads project images via images.weserv.nl (CORS proxy) so they
-// can be composited with the annotation layer into one flat PNG.
+// SCREENSHOT — delegates to buildExportCanvas
 // ================================================================
 function takeScreenshot() {
   if (!drawCanvas.width) { alert('Load a project image first.'); return; }
-
-  const strip  = document.getElementById('project-strip');
-  const imgEls = strip ? [...strip.querySelectorAll('img')].filter(i => i.naturalWidth > 0) : [];
-  const cW = drawCanvas.width, cH = drawCanvas.height;
-
-  const tmp = document.createElement('canvas');
-  tmp.width = cW; tmp.height = cH;
-  const t = tmp.getContext('2d');
-  t.fillStyle = 'white';
-  t.fillRect(0, 0, cW, cH);
-
-  function finish() {
-    t.globalAlpha = 1;
-    t.globalCompositeOperation = 'source-over';
-    t.drawImage(drawCanvas, 0, 0);
-    // Flatten pen paths into the export (without handles/anchors)
-    if (penCanvas.width) {
-      const tmp2 = document.createElement('canvas');
-      tmp2.width = t.canvas.width; tmp2.height = t.canvas.height;
-      const t2 = tmp2.getContext('2d');
-      penPaths.forEach(p => _penDrawPath(t2, p.nodes, p.closed, p.color, p.width));
-      if (penNodes.length > 1) _penDrawPath(t2, penNodes, penClosed, `rgb(${drawColor.r},${drawColor.g},${drawColor.b})`, 2);
-      t.drawImage(tmp2, 0, 0);
-    }
+  buildExportCanvas(tmp => {
     const found = GALLERY.flatMap(f => f.items).find(i => i.id === selectedItemId);
     const link = document.createElement('a');
     link.download = (found ? found.name.replace(/\s+/g, '-') : 'canvas') + '.png';
     link.href = tmp.toDataURL('image/png');
     link.click();
-  }
-
-  if (!imgEls.length) { finish(); return; }
-
-  const heights = imgEls.map(img => Math.round(img.naturalHeight * cW / img.naturalWidth));
-  let pending = imgEls.length;
-
-  imgEls.forEach((img, i) => {
-    const yPos = heights.slice(0, i).reduce((a, b) => a + b, 0);
-    const proxy = new Image();
-    proxy.crossOrigin = 'anonymous';
-    proxy.onload = () => {
-      t.save();
-      t.globalAlpha = imageOpacity;
-      t.globalCompositeOperation = imageBlend === 'normal' ? 'source-over' : imageBlend;
-      t.drawImage(proxy, 0, yPos, cW, heights[i]);
-      t.restore();
-      if (--pending === 0) finish();
-    };
-    proxy.onerror = () => { if (--pending === 0) finish(); };
-    // images.weserv.nl proxies any public image URL with CORS headers
-    proxy.src = 'https://images.weserv.nl/?url=' + encodeURIComponent(img.src);
   });
 }
 
@@ -2029,6 +2117,211 @@ document.getElementById('swatch-swap').addEventListener('click', () => {
   document.getElementById('swatch-bg').style.background = `rgb(${bgColor.r},${bgColor.g},${bgColor.b})`;
   activateSwatch('fg');
 });
+
+// ================================================================
+// TOOL SIZES — per-tool brush/stroke size
+// ================================================================
+const toolSizes = { brush:6, pen:2, eraser:20, move:2, rectangle:2, ellipse:2, polygon:2, fill:2 };
+const DRAW_TOOLS = ['brush','pen','eraser','move','rectangle','ellipse','polygon','fill'];
+
+function toolSize() { return toolSizes[activeTool] || 2; }
+
+function setToolSize(val) {
+  const s = Math.max(1, Math.min(60, Math.round(val)));
+  if (DRAW_TOOLS.includes(activeTool)) toolSizes[activeTool] = s;
+  const sl = document.getElementById('draw-size-slider');
+  const lbl = document.getElementById('draw-size-val');
+  if (sl)  sl.value = s;
+  if (lbl) lbl.textContent = s + 'px';
+}
+
+function showDrawBar(show) {
+  const bar = document.getElementById('draw-toolbar');
+  if (!bar) return;
+  bar.style.display = show ? 'flex' : 'none';
+  if (show) setToolSize(toolSizes[activeTool] || 2);
+}
+
+document.getElementById('draw-size-slider').addEventListener('input', e => setToolSize(+e.target.value));
+
+// ================================================================
+// UNDO / REDO
+// ================================================================
+const MAX_UNDO = 30;
+let undoStack = [];
+let redoStack = [];
+
+function saveUndoState() {
+  if (!drawCanvas.width) return;
+  undoStack.push({
+    raster:   ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height),
+    penPaths: JSON.parse(JSON.stringify(penPaths)),
+    penNodes: JSON.parse(JSON.stringify(penNodes))
+  });
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+  redoStack = [];
+}
+
+function applyUndoState(state) {
+  ctx.putImageData(state.raster, 0, 0);
+  penPaths = state.penPaths;
+  penNodes = state.penNodes;
+  if (penCanvas.width) penRender();
+}
+
+function undo() {
+  if (!undoStack.length) return;
+  redoStack.push({
+    raster:   ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height),
+    penPaths: JSON.parse(JSON.stringify(penPaths)),
+    penNodes: JSON.parse(JSON.stringify(penNodes))
+  });
+  applyUndoState(undoStack.pop());
+  saveCanvasState();
+}
+
+function redo() {
+  if (!redoStack.length) return;
+  undoStack.push({
+    raster:   ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height),
+    penPaths: JSON.parse(JSON.stringify(penPaths)),
+    penNodes: JSON.parse(JSON.stringify(penNodes))
+  });
+  applyUndoState(redoStack.pop());
+  saveCanvasState();
+}
+
+// ================================================================
+// COLOR HISTORY
+// ================================================================
+let colorHistory = [];
+try { colorHistory = JSON.parse(localStorage.getItem('bry_colorHistory') || '[]'); } catch(e) {}
+
+function addColorHistory(r, g, b) {
+  const hex = rgbToHex(r, g, b);
+  colorHistory = colorHistory.filter(h => h !== hex);
+  colorHistory.unshift(hex);
+  colorHistory = colorHistory.slice(0, 12);
+  try { localStorage.setItem('bry_colorHistory', JSON.stringify(colorHistory)); } catch(e) {}
+  renderColorHistory();
+}
+
+function renderColorHistory() {
+  const row = document.getElementById('color-history-row');
+  if (!row) return;
+  row.innerHTML = '';
+  colorHistory.forEach(hex => {
+    const sw = document.createElement('div');
+    sw.className = 'ch-swatch';
+    sw.style.background = '#' + hex;
+    sw.title = '#' + hex;
+    sw.addEventListener('click', () => {
+      const rgb = hexToRgb(hex);
+      if (rgb) applyColor(rgb.r, rgb.g, rgb.b);
+    });
+    row.appendChild(sw);
+  });
+}
+
+// ================================================================
+// LOCAL STORAGE — persist canvas state between sessions
+// ================================================================
+function saveCanvasState() {
+  if (!drawCanvas.width || !selectedItemId) return;
+  try {
+    const data = {
+      projectId: selectedItemId,
+      raster:    drawCanvas.toDataURL('image/jpeg', 0.85),
+      penPaths:  penPaths,
+      penNodes:  penNodes
+    };
+    localStorage.setItem('bry_canvas', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadCanvasState() {
+  try {
+    const data = JSON.parse(localStorage.getItem('bry_canvas'));
+    if (!data || data.projectId !== selectedItemId) return;
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0);
+      saveUndoState(); // treat the restored state as the base
+    };
+    img.src = data.raster;
+    penPaths = data.penPaths || [];
+    penNodes = data.penNodes || [];
+    if (penCanvas.width) penRender();
+  } catch(e) {}
+}
+
+window.addEventListener('beforeunload', saveCanvasState);
+
+// ================================================================
+// COPY TO CLIPBOARD
+// ================================================================
+async function copyCanvasToClipboard() {
+  if (!drawCanvas.width) { return; }
+  return new Promise(resolve => {
+    buildExportCanvas(tmp => {
+      tmp.toBlob(async blob => {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+          // Brief visual confirmation
+          const btn = document.getElementById('copy-btn');
+          if (btn) { const t = btn.textContent; btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = t, 1500); }
+        } catch(e) { alert('Clipboard copy not supported in this browser.'); }
+        resolve();
+      });
+    });
+  });
+}
+
+// Shared canvas-building logic used by both screenshot and copy
+function buildExportCanvas(cb) {
+  const strip  = document.getElementById('project-strip');
+  const imgEls = strip ? [...strip.querySelectorAll('img')].filter(i => i.naturalWidth > 0) : [];
+  const cW = drawCanvas.width, cH = drawCanvas.height;
+  const tmp = document.createElement('canvas');
+  tmp.width = cW; tmp.height = cH;
+  const t = tmp.getContext('2d');
+  t.fillStyle = 'white'; t.fillRect(0, 0, cW, cH);
+
+  if (!imgEls.length) {
+    t.drawImage(drawCanvas, 0, 0);
+    if (penCanvas.width) { const t2 = document.createElement('canvas'); t2.width=cW; t2.height=cH; penPaths.forEach(p=>_penDrawPath(t2.getContext('2d'),p.nodes,p.closed,p.color,p.width)); t.drawImage(t2,0,0); }
+    cb(tmp); return;
+  }
+
+  const heights = imgEls.map(img => Math.round(img.naturalHeight * cW / img.naturalWidth));
+  let pending = imgEls.length;
+  imgEls.forEach((img, i) => {
+    const yPos = heights.slice(0, i).reduce((a, b) => a + b, 0);
+    const proxy = new Image();
+    proxy.crossOrigin = 'anonymous';
+    proxy.onload = () => {
+      t.save(); t.globalAlpha = imageOpacity;
+      t.globalCompositeOperation = imageBlend === 'normal' ? 'source-over' : imageBlend;
+      t.drawImage(proxy, 0, yPos, cW, heights[i]); t.restore();
+      if (--pending === 0) finishExport(t, tmp, cb);
+    };
+    proxy.onerror = () => { if (--pending === 0) finishExport(t, tmp, cb); };
+    proxy.src = 'https://images.weserv.nl/?url=' + encodeURIComponent(img.src);
+  });
+}
+
+function finishExport(t, tmp, cb) {
+  t.globalAlpha = 1; t.globalCompositeOperation = 'source-over';
+  t.drawImage(drawCanvas, 0, 0);
+  if (penCanvas.width) {
+    const t2 = document.createElement('canvas'); t2.width = tmp.width; t2.height = tmp.height;
+    const c2 = t2.getContext('2d');
+    penPaths.forEach(p => _penDrawPath(c2, p.nodes, p.closed, p.color, p.width));
+    if (penNodes.length > 1) _penDrawPath(c2, penNodes, penClosed, `rgb(${drawColor.r},${drawColor.g},${drawColor.b})`, 2);
+    t.drawImage(t2, 0, 0);
+  }
+  cb(tmp);
+}
 
 // ================================================================
 // PEN TOOL — Bézier node editor (Phase 1 + 2)
@@ -2161,6 +2454,7 @@ function _penDrawHandles(ctx2, nodes, pathIdx) {
 
 function penCommit() {
   if (penNodes.length < 2) { penNodes = []; penClosed = false; penRender(); return; }
+  saveUndoState();
   const { r, g, b } = drawColor;
   penPaths.push({
     nodes: penNodes.map(n => ({
@@ -2249,6 +2543,38 @@ document.addEventListener('keydown', e => {
 });
 
 // ================================================================
+// GLOBAL KEYBOARD SHORTCUTS
+// ================================================================
+document.addEventListener('keydown', e => {
+  const inInput = ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName) ||
+                  document.activeElement?.contentEditable === 'true';
+  const mod = e.ctrlKey || e.metaKey;
+
+  // Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z — undo / redo
+  if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
+  if (mod && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
+
+  // Ctrl+C — copy canvas to clipboard (only when not selecting text)
+  if (mod && e.key === 'c' && !inInput && window.getSelection()?.toString() === '') {
+    e.preventDefault(); copyCanvasToClipboard(); return;
+  }
+
+  // Ctrl+0 — fit to window; Ctrl+= Ctrl+- — zoom
+  if (mod && e.key === '0') { e.preventDefault(); canvasScale=1; canvasInner.style.transform=''; document.getElementById('zoom-label').textContent='100%'; return; }
+  if (mod && (e.key === '=' || e.key === '+')) { e.preventDefault(); doZoom(0.25); return; }
+  if (mod && e.key === '-') { e.preventDefault(); doZoom(-0.25); return; }
+
+  if (inInput) return; // don't intercept text input fields below this line
+
+  // [ ] — decrease / increase current tool size
+  if (e.key === '[') { setToolSize(toolSize() - (e.shiftKey ? 5 : 1)); return; }
+  if (e.key === ']') { setToolSize(toolSize() + (e.shiftKey ? 5 : 1)); return; }
+
+  // ? — open shortcuts modal
+  if (e.key === '?') { document.getElementById('shortcuts-modal').classList.remove('hidden'); return; }
+});
+
+// ================================================================
 // INIT
 // ================================================================
 renderGallery();
@@ -2256,6 +2582,8 @@ requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     initColorPicker();
     activateSwatch('fg');
+    renderColorHistory();
+    showDrawBar(DRAW_TOOLS.includes(activeTool));
     const w = availCanvasWidth();
     const h = availCanvasHeight();
     canvasInner.style.width  = w + 'px';
@@ -2314,6 +2642,7 @@ document.getElementById('mobile-bottom-bar').addEventListener('click', e => {
   activeTool = btn.dataset.tool;
   document.body.className = `tool-${activeTool}${darkMode ? ' dark' : ''}`;
   showTextBar(activeTool === 'text');
+  showDrawBar(DRAW_TOOLS.includes(activeTool));
   if (activeTool !== 'text') { const el = document.getElementById('active-text-el'); if (el) el.blur(); }
   document.querySelectorAll('.tool-btn').forEach(b => b.classList.toggle('selected', b.dataset.tool === activeTool));
 });
