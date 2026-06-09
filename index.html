@@ -1426,12 +1426,12 @@ function loadProject(images) {
     img.style.cssText = 'display:block;width:100%;height:auto;vertical-align:top;';
     img.onload = () => {
       if (!firstWidth) {
-        // Use the image's natural width (up to 1400px) so detail is visible.
-        // The canvas-container scrolls horizontally if needed.
-        const naturalW = img.naturalWidth || 1400;
-        const minW     = availCanvasWidth(); // never narrower than the viewport
-        firstWidth = Math.max(naturalW, minW);
-        firstWidth = Math.min(firstWidth, 1400); // cap at 1400px
+        // Fit the image to the available canvas width so it's always fully
+        // visible (never cut off on the sides). Never upscale beyond 2x the
+        // natural width to avoid extreme blur on small source images.
+        // Use pinch / Ctrl+= to zoom in for finer detail.
+        const naturalW = img.naturalWidth || availCanvasWidth();
+        firstWidth = Math.min(availCanvasWidth(), naturalW * 2);
         canvasInner.style.width = firstWidth + 'px';
       }
       pending--;
