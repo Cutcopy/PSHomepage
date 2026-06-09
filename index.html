@@ -1395,13 +1395,18 @@ function loadProject(images) {
   }
   strip.innerHTML = '';
 
-  let firstWidth = 0;
+  // Fit the strip to the available canvas width upfront, independent of any
+  // image's natural size. Images always fill the width (never cut off, never
+  // tiny). Pinch / Ctrl+= zooms in for finer detail.
+  const targetW = availCanvasWidth();
+  canvasInner.style.width = targetW + 'px';
+
   let pending = images.length;
 
   const finalize = () => {
     if (pending > 0) return;
     requestAnimationFrame(() => {
-      const w = strip.clientWidth  || firstWidth || 800;
+      const w = strip.clientWidth  || targetW || 800;
       const h = strip.scrollHeight || strip.clientHeight || 600;
       canvasInner.style.height = h + 'px';
       drawCanvas.width  = w;
@@ -1413,39 +1418,14 @@ function loadProject(images) {
     });
   };
 
-  // Lazy-load with IntersectionObserver — first image loads immediately, rest on scroll
-  const lazyObserver = 'IntersectionObserver' in window
-    ? new IntersectionObserver(entries => {
-        entries.forEach(e => { if (e.isIntersecting) { e.target.src = e.target.dataset.src; lazyObserver.unobserve(e.target); } });
-      }, { rootMargin: '400px' })
-    : null;
-
-  images.forEach((src, idx) => {
+  images.forEach(src => {
     const img = document.createElement('img');
     img.referrerPolicy = 'no-referrer';
+    img.loading = 'lazy'; // native lazy decoding without breaking layout
     img.style.cssText = 'display:block;width:100%;height:auto;vertical-align:top;';
-    img.onload = () => {
-      if (!firstWidth) {
-        // Fit the image to the available canvas width so it's always fully
-        // visible (never cut off on the sides). Never upscale beyond 2x the
-        // natural width to avoid extreme blur on small source images.
-        // Use pinch / Ctrl+= to zoom in for finer detail.
-        const naturalW = img.naturalWidth || availCanvasWidth();
-        firstWidth = Math.min(availCanvasWidth(), naturalW * 2);
-        canvasInner.style.width = firstWidth + 'px';
-      }
-      pending--;
-      finalize();
-    };
+    img.onload  = () => { pending--; finalize(); };
     img.onerror = () => { pending--; finalize(); };
-    // First image loads immediately; rest lazy-load as they scroll into view
-    if (idx === 0 || !lazyObserver) {
-      img.src = src;
-    } else {
-      img.dataset.src = src;
-      img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-      lazyObserver.observe(img);
-    }
+    img.src = src;
     strip.appendChild(img);
   });
 }
