@@ -1304,7 +1304,7 @@ let shapeStart = null, shapeSnapshot = null;
 
 // DOM
 const drawCanvas   = document.getElementById('draw-canvas');
-const ctx          = drawCanvas.getContext('2d');
+const ctx          = drawCanvas.getContext('2d', { willReadFrequently: true });
 const projectImage = document.getElementById('project-image');
 const canvasInner  = document.getElementById('canvas-inner');
 const canvasContainer = document.getElementById('canvas-container');
