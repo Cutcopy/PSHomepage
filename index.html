@@ -2023,7 +2023,7 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
   penNodes = []; penPaths = []; penClosed = false; penDrag = null;
   if (penCanvas.width) penCtx.clearRect(0, 0, penCanvas.width, penCanvas.height);
-  localStorage.removeItem('bry_canvas');
+  localStorage.removeItem('bry_canvas_v2');
   closeFileMenu();
 });
 
@@ -2280,22 +2280,39 @@ function renderColorHistory() {
 // ================================================================
 // LOCAL STORAGE — persist canvas state between sessions
 // ================================================================
+function canvasHasContent() {
+  if (!drawCanvas.width) return false;
+  try {
+    const d = ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height).data;
+    for (let i = 3; i < d.length; i += 4) if (d[i] !== 0) return true; // any non-transparent pixel
+  } catch(e) { return false; }
+  return false;
+}
+
 function saveCanvasState() {
   if (!drawCanvas.width || !selectedItemId) return;
+  // Only persist when there's actual annotation; nothing to save on a blank canvas
+  if (!canvasHasContent() && !penPaths.length && !penNodes.length) {
+    // Clear any stale state for this project so we don't restore old black/JPEG data
+    try { const prev = JSON.parse(localStorage.getItem('bry_canvas_v2')); if (prev && prev.projectId === selectedItemId) localStorage.removeItem('bry_canvas_v2'); } catch(e) {}
+    return;
+  }
   try {
     const data = {
       projectId: selectedItemId,
-      raster:    drawCanvas.toDataURL('image/jpeg', 0.85),
+      // PNG preserves transparency — JPEG would fill the transparent
+      // annotation layer with black and clobber the image on restore
+      raster:    drawCanvas.toDataURL('image/png'),
       penPaths:  penPaths,
       penNodes:  penNodes
     };
-    localStorage.setItem('bry_canvas', JSON.stringify(data));
+    localStorage.setItem('bry_canvas_v2', JSON.stringify(data));
   } catch(e) {}
 }
 
 function loadCanvasState() {
   try {
-    const data = JSON.parse(localStorage.getItem('bry_canvas'));
+    const data = JSON.parse(localStorage.getItem('bry_canvas_v2'));
     if (!data || data.projectId !== selectedItemId) return;
     const img = new Image();
     img.onload = () => {
