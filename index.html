@@ -609,6 +609,36 @@ body.dark .form-group input,body.dark .form-group textarea{
 }
 body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
 
+/* ===== BLUE THEME (light variant on a blue gradient) ===== */
+body.blue{
+  background:linear-gradient(to bottom,#1167ff 0%,#032054 100%);
+}
+body.blue #left-sidebar{background:#ffffff;border-right:2px solid #e8eaee;}
+body.blue #canvas-container{background:transparent;}
+body.blue .panel{background:#ffffff;border-color:#1481bd;}
+body.blue .panel-header{background:#dadde4;}
+body.blue #file-dropdown{background:#ffffff;border-color:#1481bd;backdrop-filter:none;}
+body.blue .menu-item{color:#ffffff;}
+body.blue .menu-item:hover,body.blue .menu-item.open{background:rgba(255,255,255,0.2);}
+body.blue .tool-btn.highlighted{background:#e8eaee;}
+body.blue .tool-btn.selected{background:#39ffff;border-color:#1481bd;}
+body.blue .swatch-fg.active-swatch,body.blue .swatch-bg.active-swatch{
+  box-shadow:inset 0 0 0.9px 2px rgba(0,0,0,0.1),0 0 0 2px white,0 0 0 3.5px #1481bd;
+}
+body.blue .work-ctrl{background:#e8eaee;border-color:#1481bd;}
+body.blue .work-dd-item.active{background:rgba(57,255,255,0.35);}
+body.blue #gallery-list{border-color:#1481bd;}
+body.blue .g-folder-hd{background:#e8eaee;}
+body.blue .g-folder-hd:hover{background:#dadde4;}
+body.blue .g-item{background:#f0f2f6;}
+body.blue .g-item:hover{background:#e8eaee;}
+body.blue .g-item.selected{background:#39ffff;}
+body.blue .g-icon-wrap,body.blue .g-vis-wrap{background:#ffffff;border-color:#1481bd;}
+body.blue #footer{border-top-color:#e8eaee;}
+body.blue #zoom-indicator{background:#ffffff;border-right-color:#e8eaee;}
+body.blue #copyright{background:#ffffff;}
+body.blue #mobile-bottom-bar{background:#ffffff;border-top-color:#e8eaee;}
+
 /* ===== MOBILE ===== */
 #panel-toggle-btn{display:none;}
 #sidebar-handle{display:none;}
@@ -816,7 +846,7 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
             <div class="dd-item" id="reset-btn">Reset</div>
             <div class="dd-item" id="screenshot-btn">Screenshot</div>
             <div class="dd-item" id="copy-btn">Copy to Clipboard</div>
-            <div class="dd-item" id="dark-mode-btn">Dark Mode</div>
+            <div class="dd-item" id="theme-btn">Theme: Light</div>
             <div class="dd-item" id="shortcuts-btn">Shortcuts ?</div>
           </div>
         </div>
@@ -1970,7 +2000,7 @@ document.getElementById('toolbar-grid').addEventListener('click', e => {
   document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   activeTool = btn.dataset.tool;
-  document.body.className = `tool-${activeTool}${darkMode ? ' dark' : ''}`;
+  document.body.className = `tool-${activeTool}${currentTheme !== 'light' ? ' ' + currentTheme : ''}`;
   showTextBar(activeTool === 'text');
   showDrawBar(DRAW_TOOLS.includes(activeTool));
   if (penCanvas.width) penRender();
@@ -2022,13 +2052,29 @@ document.getElementById('shortcuts-btn').addEventListener('click', () => {
   closeFileMenu();
 });
 
+// ── Theme system: Light → Dark → Blue ──
+const THEMES = ['light', 'dark', 'blue'];
+const THEME_LABELS = { light: 'Light', dark: 'Dark', blue: 'Blue' };
+let currentTheme = 'light';
+try { const saved = localStorage.getItem('bry_theme'); if (THEMES.includes(saved)) currentTheme = saved; } catch(e) {}
+// Back-compat alias still referenced by toolbar handlers
 let darkMode = false;
-document.getElementById('dark-mode-btn').addEventListener('click', () => {
-  darkMode = !darkMode;
-  document.body.classList.toggle('dark', darkMode);
-  document.getElementById('dark-mode-btn').textContent = darkMode ? '✓ Dark Mode' : 'Dark Mode';
-  document.getElementById('file-dropdown').classList.add('hidden');
-  document.getElementById('file-menu').classList.remove('open');
+
+function applyTheme(t) {
+  currentTheme = THEMES.includes(t) ? t : 'light';
+  darkMode = currentTheme === 'dark';
+  // Rebuild the full body class so the active tool + theme stay in sync
+  document.body.className = `tool-${activeTool}${currentTheme !== 'light' ? ' ' + currentTheme : ''}`;
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = 'Theme: ' + THEME_LABELS[currentTheme];
+  try { localStorage.setItem('bry_theme', currentTheme); } catch(e) {}
+  if (penCanvas && penCanvas.width) penRender();
+}
+
+document.getElementById('theme-btn').addEventListener('click', e => {
+  e.stopPropagation(); // keep the menu open so the user can cycle themes
+  const next = THEMES[(THEMES.indexOf(currentTheme) + 1) % THEMES.length];
+  applyTheme(next);
 });
 
 document.getElementById('about-btn').addEventListener('click', () => {
@@ -2609,6 +2655,7 @@ requestAnimationFrame(() => {
     initColorPicker();
     activateSwatch('fg');
     renderColorHistory();
+    applyTheme(currentTheme); // restore saved theme
     showDrawBar(DRAW_TOOLS.includes(activeTool));
     const w = availCanvasWidth();
     const h = availCanvasHeight();
@@ -2667,7 +2714,7 @@ document.getElementById('mobile-bottom-bar').addEventListener('click', e => {
   document.querySelectorAll('.mob-tool-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   activeTool = btn.dataset.tool;
-  document.body.className = `tool-${activeTool}${darkMode ? ' dark' : ''}`;
+  document.body.className = `tool-${activeTool}${currentTheme !== 'light' ? ' ' + currentTheme : ''}`;
   showTextBar(activeTool === 'text');
   showDrawBar(DRAW_TOOLS.includes(activeTool));
   if (activeTool !== 'text') { const el = document.getElementById('active-text-el'); if (el) el.blur(); }
