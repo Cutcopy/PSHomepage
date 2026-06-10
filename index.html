@@ -1594,14 +1594,14 @@ drawCanvas.addEventListener('mouseleave', () => { isDrawing = false; });
 drawCanvas.addEventListener('touchstart', e => {
   e.preventDefault();
   const touch = e.touches[0];
-  drawCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY }));
+  drawCanvas.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: touch.clientX, clientY: touch.clientY }));
 }, { passive: false });
 drawCanvas.addEventListener('touchmove', e => {
   e.preventDefault();
   const touch = e.touches[0];
-  drawCanvas.dispatchEvent(new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY }));
+  drawCanvas.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: touch.clientX, clientY: touch.clientY }));
 }, { passive: false });
-drawCanvas.addEventListener('touchend', () => drawCanvas.dispatchEvent(new MouseEvent('mouseup')));
+drawCanvas.addEventListener('touchend', () => drawCanvas.dispatchEvent(new MouseEvent('mouseup', { bubbles: true })));
 
 // Eyedropper — uses native EyeDropper API (Chrome/Edge) to sample from anywhere on screen;
 // falls back to sampling the drawing canvas layer only (CORS blocks Behance images)
@@ -2760,7 +2760,7 @@ drawCanvas.addEventListener('touchstart', drawCanvas._touchstart = e => {
   if (e.touches.length > 1) return;
   e.preventDefault();
   const t = e.touches[0];
-  drawCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: t.clientX, clientY: t.clientY }));
+  drawCanvas.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: t.clientX, clientY: t.clientY }));
 }, { passive: false });
 </script>
 </body>
