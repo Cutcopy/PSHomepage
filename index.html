@@ -791,7 +791,11 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
       <button class="modal-close" onclick="closeModal('contact-modal')">×</button>
       <div class="modal-title">Contact</div>
       <div id="contact-body">
-        <form id="contact-form" class="modal-body" onsubmit="submitContact(event)">
+        <form id="contact-form" class="modal-body" name="contact" method="POST"
+              data-netlify="true" netlify-honeypot="bot-field" onsubmit="submitContact(event)">
+          <!-- Netlify form detection + spam honeypot -->
+          <input type="hidden" name="form-name" value="contact">
+          <p style="display:none;"><label>Don't fill this out if you're human: <input name="bot-field"></label></p>
           <div class="form-group"><label>Name</label><input type="text" name="name" required placeholder="Your name"></div>
           <div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="your@email.com"></div>
           <div class="form-group"><label>Message</label><textarea name="message" required placeholder="Say hello…"></textarea></div>
@@ -2098,8 +2102,25 @@ document.querySelectorAll('.modal-ov').forEach(ov =>
 
 function submitContact(e) {
   e.preventDefault();
-  document.getElementById('contact-body').innerHTML =
-    '<p style="text-align:center;padding:30px 0;font-size:15px;font-weight:700;">Message sent! I\'ll be in touch soon.</p>';
+  const form = e.target;
+  const body = document.getElementById('contact-body');
+  const btn  = form.querySelector('.btn-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+  // Netlify Forms AJAX submission — keeps the app intact (no page navigation)
+  fetch('/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(new FormData(form)).toString()
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('Bad response');
+    body.innerHTML = '<p style="text-align:center;padding:30px 0;font-size:15px;font-weight:700;">Message sent! I\'ll be in touch soon.</p>';
+  })
+  .catch(() => {
+    body.innerHTML = '<p style="text-align:center;padding:30px 0;font-size:14px;font-weight:600;line-height:1.6;">' +
+      'Couldn\'t send the message right now.<br>Please email me directly or try again later.</p>';
+  });
 }
 
 // ================================================================
