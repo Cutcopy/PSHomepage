@@ -731,6 +731,16 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
 </head>
 <body class="tool-brush">
 
+<!-- Hidden static form so the Netlify build bot reliably detects "contact".
+     The visible modal form (submitted via AJAX) POSTs against this. -->
+<form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="contact">
+  <input name="bot-field">
+  <input type="text" name="name">
+  <input type="email" name="email">
+  <textarea name="message"></textarea>
+</form>
+
 <div id="app">
 
   <!-- ===== SHORTCUTS MODAL ===== -->
@@ -792,8 +802,9 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
       <div class="modal-title">Contact</div>
       <div id="contact-body">
         <form id="contact-form" class="modal-body" name="contact" method="POST"
-              data-netlify="true" netlify-honeypot="bot-field" onsubmit="submitContact(event)">
-          <!-- Netlify form detection + spam honeypot -->
+              onsubmit="submitContact(event)">
+          <!-- form-name + honeypot included in the AJAX body; detection is
+               handled by the hidden static form at the top of <body> -->
           <input type="hidden" name="form-name" value="contact">
           <p style="display:none;"><label>Don't fill this out if you're human: <input name="bot-field"></label></p>
           <div class="form-group"><label>Name</label><input type="text" name="name" required placeholder="Your name"></div>
