@@ -162,12 +162,16 @@ a{text-decoration:none;color:inherit;}
 .dd-parent{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;}
 .dd-arrow{font-size:9px;opacity:0.65;}
 .dd-flyout{
-  position:absolute;top:-6px;left:100%;margin-left:5px;
+  position:absolute;top:-6px;left:100%;margin-left:4px;
   background:rgba(255,255,255,0.5);backdrop-filter:blur(4px);
   border:1px solid white;border-radius:5px;
   box-shadow:0 0 5px rgba(0,0,0,0.25);
   padding:5px;z-index:101;min-width:80px;
   flex-direction:column;gap:3px;display:none;
+}
+/* Invisible hover bridge so crossing the gap to the flyout doesn't drop hover */
+.dd-parent::after{
+  content:'';position:absolute;top:0;left:100%;width:14px;height:100%;
 }
 .dd-parent:hover > .dd-flyout,
 .dd-parent.open > .dd-flyout{display:flex;}
@@ -636,6 +640,7 @@ body.blue .panel{background:#ffffff;border-color:#1481bd;}
 body.blue .panel-header{background:#dadde4;}
 body.blue #file-dropdown{background:#ffffff;border-color:#1481bd;backdrop-filter:none;}
 body.blue .dd-flyout{background:#ffffff;border-color:#1481bd;backdrop-filter:none;}
+body.blue .dd-item:hover,body.blue .dd-item.active{background:#39ffff;}
 body.blue .menu-item{color:#ffffff;}
 body.blue .menu-item:hover,body.blue .menu-item.open{background:rgba(255,255,255,0.2);}
 body.blue .tool-btn:hover{background:#e8eaee;}
