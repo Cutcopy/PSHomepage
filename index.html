@@ -158,6 +158,26 @@ a{text-decoration:none;color:inherit;}
 .dd-item:hover{background:rgba(255,255,255,0.5);}
 .dd-item.active{background:rgba(255,255,255,0.5);}
 
+/* Theme flyout submenu */
+.dd-parent{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;}
+.dd-arrow{font-size:9px;opacity:0.65;}
+.dd-flyout{
+  position:absolute;top:-6px;left:100%;margin-left:4px;
+  background:rgba(255,255,255,0.5);backdrop-filter:blur(4px);
+  border:1px solid white;border-radius:5px;
+  box-shadow:0 0 5px rgba(0,0,0,0.25);
+  padding:5px;z-index:101;min-width:80px;
+  flex-direction:column;gap:3px;display:none;
+}
+/* Invisible hover bridge so crossing the gap to the flyout doesn't drop hover */
+.dd-parent::after{
+  content:'';position:absolute;top:0;left:100%;width:14px;height:100%;
+}
+.dd-parent:hover > .dd-flyout,
+.dd-parent.open > .dd-flyout{display:flex;}
+.dd-flyout .dd-item{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.dd-flyout .dd-item.active::after{content:'✓';font-size:11px;}
+
 /* ===== TEXT TOOLBAR ===== */
 #text-toolbar{
   flex-shrink:0;height:30px;
@@ -559,6 +579,7 @@ body.dark #hue-wrap{border-color:rgba(255,255,255,0.2);}
 body.dark .menu-item{color:white;}
 body.dark .menu-item:hover,body.dark .menu-item.open{background:rgba(255,255,255,0.12);}
 body.dark #file-dropdown{background:#14171f;border-color:#282b33;backdrop-filter:none;}
+body.dark .dd-flyout{background:#14171f;border-color:#282b33;backdrop-filter:none;}
 body.dark .dd-item{color:white;}
 body.dark .dd-item:hover{background:rgba(255,255,255,0.1);}
 body.dark #text-toolbar{background:rgba(20,23,31,0.95);border-bottom-color:rgba(255,255,255,0.1);}
@@ -609,6 +630,40 @@ body.dark .form-group input,body.dark .form-group textarea{
 }
 body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
 
+/* ===== BLUE THEME (light variant on a blue gradient) ===== */
+body.blue{
+  background:linear-gradient(to bottom,#1167ff 0%,#032054 100%);
+}
+body.blue #left-sidebar{background:#ffffff;border-right:2px solid #e8eaee;}
+body.blue #canvas-container{background:transparent;}
+body.blue .panel{background:#ffffff;border-color:#1481bd;}
+body.blue .panel-header{background:#dadde4;}
+body.blue #file-dropdown{background:#ffffff;border-color:#1481bd;backdrop-filter:none;}
+body.blue .dd-flyout{background:#ffffff;border-color:#1481bd;backdrop-filter:none;}
+body.blue .dd-item:hover,body.blue .dd-item.active{background:#39ffff;}
+body.blue .menu-item{color:#ffffff;}
+body.blue .menu-item:hover,body.blue .menu-item.open{background:rgba(255,255,255,0.2);}
+body.blue .tool-btn:hover{background:#e8eaee;}
+body.blue .tool-btn.highlighted{background:#e8eaee;}
+body.blue .tool-btn.selected{background:#39ffff;border-color:#1481bd;}
+body.blue .tool-btn.selected:hover{background:#39ffff;}
+body.blue .swatch-fg.active-swatch,body.blue .swatch-bg.active-swatch{
+  box-shadow:inset 0 0 0.9px 2px rgba(0,0,0,0.1),0 0 0 2px white,0 0 0 3.5px #1481bd;
+}
+body.blue .work-ctrl{background:#e8eaee;border-color:#1481bd;}
+body.blue .work-dd-item.active{background:rgba(57,255,255,0.35);}
+body.blue #gallery-list{border-color:#1481bd;}
+body.blue .g-folder-hd{background:#e8eaee;}
+body.blue .g-folder-hd:hover{background:#dadde4;}
+body.blue .g-item{background:#f0f2f6;}
+body.blue .g-item:hover{background:#e8eaee;}
+body.blue .g-item.selected{background:#39ffff;}
+body.blue .g-icon-wrap,body.blue .g-vis-wrap{background:#ffffff;border-color:#1481bd;}
+body.blue #footer{border-top-color:#e8eaee;}
+body.blue #zoom-indicator{background:#ffffff;border-right-color:#e8eaee;}
+body.blue #copyright{background:#ffffff;}
+body.blue #mobile-bottom-bar{background:#ffffff;border-top-color:#e8eaee;}
+
 /* ===== MOBILE ===== */
 #panel-toggle-btn{display:none;}
 #sidebar-handle{display:none;}
@@ -646,6 +701,7 @@ body.dark .btn-submit{background:#24afff;border-color:#1a8fd1;}
 @media(max-width:600px){
   #left-sidebar{display:none;}
   #canvas-container{padding:6px 6px 68px;}
+  #draw-toolbar .tt-hint,#text-toolbar .tt-hint{display:none;}
   .menu-item{font-size:11px;padding:5px 7px;}
   #right-sidebar{
     top:auto;bottom:0;left:0;right:0;
@@ -697,6 +753,16 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
 </style>
 </head>
 <body class="tool-brush">
+
+<!-- Hidden static form so the Netlify build bot reliably detects "contact".
+     The visible modal form (submitted via AJAX) POSTs against this. -->
+<form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="contact">
+  <input name="bot-field">
+  <input type="text" name="name">
+  <input type="email" name="email">
+  <textarea name="message"></textarea>
+</form>
 
 <div id="app">
 
@@ -758,7 +824,12 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
       <button class="modal-close" onclick="closeModal('contact-modal')">×</button>
       <div class="modal-title">Contact</div>
       <div id="contact-body">
-        <form id="contact-form" class="modal-body" onsubmit="submitContact(event)">
+        <form id="contact-form" class="modal-body" name="contact" method="POST"
+              onsubmit="submitContact(event)">
+          <!-- form-name + honeypot included in the AJAX body; detection is
+               handled by the hidden static form at the top of <body> -->
+          <input type="hidden" name="form-name" value="contact">
+          <p style="display:none;"><label>Don't fill this out if you're human: <input name="bot-field"></label></p>
           <div class="form-group"><label>Name</label><input type="text" name="name" required placeholder="Your name"></div>
           <div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="your@email.com"></div>
           <div class="form-group"><label>Message</label><textarea name="message" required placeholder="Say hello…"></textarea></div>
@@ -783,7 +854,7 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
         <button class="tool-btn" data-tool="move"       title="Line">       <img src="Assets/linetool.svg"          alt="Line"></button>
         <button class="tool-btn" data-tool="rectangle"  title="Rectangle">  <img src="Assets/Rectangletool.svg" alt="Rectangle"></button>
         <button class="tool-btn" data-tool="polygon"    title="Polygon">    <img src="Assets/Polygon tool.svg"  alt="Polygon"></button>
-        <button class="tool-btn highlighted" data-tool="text"      title="Text">       <img src="Assets/TypeTool.svg"      alt="Text"></button>
+        <button class="tool-btn" data-tool="text"      title="Text">       <img src="Assets/TypeTool.svg"      alt="Text"></button>
         <button class="tool-btn selected"    data-tool="brush"     title="Brush">      <img src="Assets/BrushTool.svg"     alt="Brush"></button>
         <button class="tool-btn" data-tool="eyedropper" title="Eyedropper"> <img src="Assets/EyedropperTool.svg" alt="Eyedropper"></button>
         <button class="tool-btn" data-tool="eraser"     title="Eraser">     <img src="Assets/Eraser.svg"        alt="Eraser"></button>
@@ -815,7 +886,15 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
             <div class="dd-item" id="reset-btn">Reset</div>
             <div class="dd-item" id="screenshot-btn">Screenshot</div>
             <div class="dd-item" id="copy-btn">Copy to Clipboard</div>
-            <div class="dd-item" id="dark-mode-btn">Dark Mode</div>
+            <div class="dd-item dd-parent" id="theme-parent">
+              <span>Theme</span>
+              <span class="dd-arrow">▸</span>
+              <div class="dd-flyout" id="theme-flyout">
+                <div class="dd-item" data-theme="light">Light</div>
+                <div class="dd-item" data-theme="dark">Dark</div>
+                <div class="dd-item" data-theme="blue">Blue</div>
+              </div>
+            </div>
             <div class="dd-item" id="shortcuts-btn">Shortcuts ?</div>
           </div>
         </div>
@@ -1014,6 +1093,20 @@ const GALLERY = [
     id: 'ux-ui',
     name: 'UX / UI Design',
     items: [
+      {
+        id: 'doki-doki-rummy',
+        name: 'Doki Doki Rummy',
+        thumb: 'https://mir-s3-cdn-cf.behance.net/projects/404/124df4250822787.Y3JvcCwxMjM2LDk2NiwwLDU1.png',
+        url: 'https://www.behance.net/gallery/250822787/Doki-Doki-Rummy',
+        info: 'Client: Self-initiated\nProject: Doki Doki Rummy\nGoal: An online rummy card game with a playful, kawaii aesthetic — branded to match a sticker store and designed for the whole family to enjoy.',
+        images: [
+          'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200_webp/38609c250822787.6a282f5f65350.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/1165be250822787.6a282f5f65e44.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/912923250822787.6a282f5f65aa9.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/0ddaac250822787.6a282f5f66169.png',
+          'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/ce323d250822787.6a282f5f656ed.png'
+        ]
+      },
       {
         id: 'lang-acq',
         name: 'Language Acquisition',
@@ -1271,7 +1364,7 @@ let shapeStart = null, shapeSnapshot = null;
 
 // DOM
 const drawCanvas   = document.getElementById('draw-canvas');
-const ctx          = drawCanvas.getContext('2d');
+const ctx          = drawCanvas.getContext('2d', { willReadFrequently: true });
 const projectImage = document.getElementById('project-image');
 const canvasInner  = document.getElementById('canvas-inner');
 const canvasContainer = document.getElementById('canvas-container');
@@ -1362,13 +1455,18 @@ function loadProject(images) {
   }
   strip.innerHTML = '';
 
-  let firstWidth = 0;
+  // Fit the strip to the available canvas width upfront, independent of any
+  // image's natural size. Images always fill the width (never cut off, never
+  // tiny). Pinch / Ctrl+= zooms in for finer detail.
+  const targetW = availCanvasWidth();
+  canvasInner.style.width = targetW + 'px';
+
   let pending = images.length;
 
   const finalize = () => {
     if (pending > 0) return;
     requestAnimationFrame(() => {
-      const w = strip.clientWidth  || firstWidth || 800;
+      const w = strip.clientWidth  || targetW || 800;
       const h = strip.scrollHeight || strip.clientHeight || 600;
       canvasInner.style.height = h + 'px';
       drawCanvas.width  = w;
@@ -1380,39 +1478,14 @@ function loadProject(images) {
     });
   };
 
-  // Lazy-load with IntersectionObserver — first image loads immediately, rest on scroll
-  const lazyObserver = 'IntersectionObserver' in window
-    ? new IntersectionObserver(entries => {
-        entries.forEach(e => { if (e.isIntersecting) { e.target.src = e.target.dataset.src; lazyObserver.unobserve(e.target); } });
-      }, { rootMargin: '400px' })
-    : null;
-
-  images.forEach((src, idx) => {
+  images.forEach(src => {
     const img = document.createElement('img');
     img.referrerPolicy = 'no-referrer';
+    img.loading = 'lazy'; // native lazy decoding without breaking layout
     img.style.cssText = 'display:block;width:100%;height:auto;vertical-align:top;';
-    img.onload = () => {
-      if (!firstWidth) {
-        // Use the image's natural width (up to 1400px) so detail is visible.
-        // The canvas-container scrolls horizontally if needed.
-        const naturalW = img.naturalWidth || 1400;
-        const minW     = availCanvasWidth(); // never narrower than the viewport
-        firstWidth = Math.max(naturalW, minW);
-        firstWidth = Math.min(firstWidth, 1400); // cap at 1400px
-        canvasInner.style.width = firstWidth + 'px';
-      }
-      pending--;
-      finalize();
-    };
+    img.onload  = () => { pending--; finalize(); };
     img.onerror = () => { pending--; finalize(); };
-    // First image loads immediately; rest lazy-load as they scroll into view
-    if (idx === 0 || !lazyObserver) {
-      img.src = src;
-    } else {
-      img.dataset.src = src;
-      img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-      lazyObserver.observe(img);
-    }
+    img.src = src;
     strip.appendChild(img);
   });
 }
@@ -1567,14 +1640,14 @@ drawCanvas.addEventListener('mouseleave', () => { isDrawing = false; });
 drawCanvas.addEventListener('touchstart', e => {
   e.preventDefault();
   const touch = e.touches[0];
-  drawCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY }));
+  drawCanvas.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: touch.clientX, clientY: touch.clientY }));
 }, { passive: false });
 drawCanvas.addEventListener('touchmove', e => {
   e.preventDefault();
   const touch = e.touches[0];
-  drawCanvas.dispatchEvent(new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY }));
+  drawCanvas.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: touch.clientX, clientY: touch.clientY }));
 }, { passive: false });
-drawCanvas.addEventListener('touchend', () => drawCanvas.dispatchEvent(new MouseEvent('mouseup')));
+drawCanvas.addEventListener('touchend', () => drawCanvas.dispatchEvent(new MouseEvent('mouseup', { bubbles: true })));
 
 // Eyedropper — uses native EyeDropper API (Chrome/Edge) to sample from anywhere on screen;
 // falls back to sampling the drawing canvas layer only (CORS blocks Behance images)
@@ -1969,7 +2042,7 @@ document.getElementById('toolbar-grid').addEventListener('click', e => {
   document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   activeTool = btn.dataset.tool;
-  document.body.className = `tool-${activeTool}${darkMode ? ' dark' : ''}`;
+  document.body.className = `tool-${activeTool}${currentTheme !== 'light' ? ' ' + currentTheme : ''}`;
   showTextBar(activeTool === 'text');
   showDrawBar(DRAW_TOOLS.includes(activeTool));
   if (penCanvas.width) penRender();
@@ -2003,6 +2076,8 @@ document.getElementById('file-menu').addEventListener('click', e => {
 function closeFileMenu() {
   document.getElementById('file-dropdown').classList.add('hidden');
   document.getElementById('file-menu').classList.remove('open');
+  const tp = document.getElementById('theme-parent');
+  if (tp) tp.classList.remove('open');
 }
 
 document.getElementById('reset-btn').addEventListener('click', () => {
@@ -2010,7 +2085,7 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
   penNodes = []; penPaths = []; penClosed = false; penDrag = null;
   if (penCanvas.width) penCtx.clearRect(0, 0, penCanvas.width, penCanvas.height);
-  localStorage.removeItem('bry_canvas');
+  localStorage.removeItem('bry_canvas_v2');
   closeFileMenu();
 });
 
@@ -2021,13 +2096,40 @@ document.getElementById('shortcuts-btn').addEventListener('click', () => {
   closeFileMenu();
 });
 
+// ── Theme system: Light → Dark → Blue ──
+const THEMES = ['light', 'dark', 'blue'];
+const THEME_LABELS = { light: 'Light', dark: 'Dark', blue: 'Blue' };
+let currentTheme = 'light';
+try { const saved = localStorage.getItem('bry_theme'); if (THEMES.includes(saved)) currentTheme = saved; } catch(e) {}
+// Back-compat alias still referenced by toolbar handlers
 let darkMode = false;
-document.getElementById('dark-mode-btn').addEventListener('click', () => {
-  darkMode = !darkMode;
-  document.body.classList.toggle('dark', darkMode);
-  document.getElementById('dark-mode-btn').textContent = darkMode ? '✓ Dark Mode' : 'Dark Mode';
-  document.getElementById('file-dropdown').classList.add('hidden');
-  document.getElementById('file-menu').classList.remove('open');
+
+function applyTheme(t) {
+  currentTheme = THEMES.includes(t) ? t : 'light';
+  darkMode = currentTheme === 'dark';
+  // Rebuild the full body class so the active tool + theme stay in sync
+  document.body.className = `tool-${activeTool}${currentTheme !== 'light' ? ' ' + currentTheme : ''}`;
+  // Mark the active theme in the flyout submenu
+  document.querySelectorAll('#theme-flyout .dd-item').forEach(it =>
+    it.classList.toggle('active', it.dataset.theme === currentTheme));
+  try { localStorage.setItem('bry_theme', currentTheme); } catch(e) {}
+  if (penCanvas && penCanvas.width) penRender();
+}
+
+// Parent item: toggle the flyout open on click (for touch; hover handles desktop)
+document.getElementById('theme-parent').addEventListener('click', e => {
+  if (e.target.closest('#theme-flyout')) return; // flyout items handle themselves
+  e.stopPropagation();
+  document.getElementById('theme-parent').classList.toggle('open');
+});
+
+// Flyout items: pick a theme and close the menu
+document.querySelectorAll('#theme-flyout .dd-item').forEach(item => {
+  item.addEventListener('click', e => {
+    e.stopPropagation();
+    applyTheme(item.dataset.theme);
+    closeFileMenu();
+  });
 });
 
 document.getElementById('about-btn').addEventListener('click', () => {
@@ -2055,8 +2157,25 @@ document.querySelectorAll('.modal-ov').forEach(ov =>
 
 function submitContact(e) {
   e.preventDefault();
-  document.getElementById('contact-body').innerHTML =
-    '<p style="text-align:center;padding:30px 0;font-size:15px;font-weight:700;">Message sent! I\'ll be in touch soon.</p>';
+  const form = e.target;
+  const body = document.getElementById('contact-body');
+  const btn  = form.querySelector('.btn-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+  // Netlify Forms AJAX submission — keeps the app intact (no page navigation)
+  fetch('/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(new FormData(form)).toString()
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('Bad response');
+    body.innerHTML = '<p style="text-align:center;padding:30px 0;font-size:15px;font-weight:700;">Message sent! I\'ll be in touch soon.</p>';
+  })
+  .catch(() => {
+    body.innerHTML = '<p style="text-align:center;padding:30px 0;font-size:14px;font-weight:600;line-height:1.6;">' +
+      'Couldn\'t send the message right now.<br>Please email me directly or try again later.</p>';
+  });
 }
 
 // ================================================================
@@ -2251,22 +2370,39 @@ function renderColorHistory() {
 // ================================================================
 // LOCAL STORAGE — persist canvas state between sessions
 // ================================================================
+function canvasHasContent() {
+  if (!drawCanvas.width) return false;
+  try {
+    const d = ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height).data;
+    for (let i = 3; i < d.length; i += 4) if (d[i] !== 0) return true; // any non-transparent pixel
+  } catch(e) { return false; }
+  return false;
+}
+
 function saveCanvasState() {
   if (!drawCanvas.width || !selectedItemId) return;
+  // Only persist when there's actual annotation; nothing to save on a blank canvas
+  if (!canvasHasContent() && !penPaths.length && !penNodes.length) {
+    // Clear any stale state for this project so we don't restore old black/JPEG data
+    try { const prev = JSON.parse(localStorage.getItem('bry_canvas_v2')); if (prev && prev.projectId === selectedItemId) localStorage.removeItem('bry_canvas_v2'); } catch(e) {}
+    return;
+  }
   try {
     const data = {
       projectId: selectedItemId,
-      raster:    drawCanvas.toDataURL('image/jpeg', 0.85),
+      // PNG preserves transparency — JPEG would fill the transparent
+      // annotation layer with black and clobber the image on restore
+      raster:    drawCanvas.toDataURL('image/png'),
       penPaths:  penPaths,
       penNodes:  penNodes
     };
-    localStorage.setItem('bry_canvas', JSON.stringify(data));
+    localStorage.setItem('bry_canvas_v2', JSON.stringify(data));
   } catch(e) {}
 }
 
 function loadCanvasState() {
   try {
-    const data = JSON.parse(localStorage.getItem('bry_canvas'));
+    const data = JSON.parse(localStorage.getItem('bry_canvas_v2'));
     if (!data || data.projectId !== selectedItemId) return;
     const img = new Image();
     img.onload = () => {
@@ -2608,6 +2744,7 @@ requestAnimationFrame(() => {
     initColorPicker();
     activateSwatch('fg');
     renderColorHistory();
+    applyTheme(currentTheme); // restore saved theme
     showDrawBar(DRAW_TOOLS.includes(activeTool));
     const w = availCanvasWidth();
     const h = availCanvasHeight();
@@ -2666,7 +2803,7 @@ document.getElementById('mobile-bottom-bar').addEventListener('click', e => {
   document.querySelectorAll('.mob-tool-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   activeTool = btn.dataset.tool;
-  document.body.className = `tool-${activeTool}${darkMode ? ' dark' : ''}`;
+  document.body.className = `tool-${activeTool}${currentTheme !== 'light' ? ' ' + currentTheme : ''}`;
   showTextBar(activeTool === 'text');
   showDrawBar(DRAW_TOOLS.includes(activeTool));
   if (activeTool !== 'text') { const el = document.getElementById('active-text-el'); if (el) el.blur(); }
@@ -2699,7 +2836,7 @@ drawCanvas.addEventListener('touchstart', drawCanvas._touchstart = e => {
   if (e.touches.length > 1) return;
   e.preventDefault();
   const t = e.touches[0];
-  drawCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: t.clientX, clientY: t.clientY }));
+  drawCanvas.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: t.clientX, clientY: t.clientY }));
 }, { passive: false });
 </script>
 </body>
