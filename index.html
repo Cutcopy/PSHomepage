@@ -158,6 +158,22 @@ a{text-decoration:none;color:inherit;}
 .dd-item:hover{background:rgba(255,255,255,0.5);}
 .dd-item.active{background:rgba(255,255,255,0.5);}
 
+/* Theme flyout submenu */
+.dd-parent{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;}
+.dd-arrow{font-size:9px;opacity:0.65;}
+.dd-flyout{
+  position:absolute;top:-6px;left:100%;margin-left:5px;
+  background:rgba(255,255,255,0.5);backdrop-filter:blur(4px);
+  border:1px solid white;border-radius:5px;
+  box-shadow:0 0 5px rgba(0,0,0,0.25);
+  padding:5px;z-index:101;min-width:80px;
+  flex-direction:column;gap:3px;display:none;
+}
+.dd-parent:hover > .dd-flyout,
+.dd-parent.open > .dd-flyout{display:flex;}
+.dd-flyout .dd-item{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.dd-flyout .dd-item.active::after{content:'✓';font-size:11px;}
+
 /* ===== TEXT TOOLBAR ===== */
 #text-toolbar{
   flex-shrink:0;height:30px;
@@ -559,6 +575,7 @@ body.dark #hue-wrap{border-color:rgba(255,255,255,0.2);}
 body.dark .menu-item{color:white;}
 body.dark .menu-item:hover,body.dark .menu-item.open{background:rgba(255,255,255,0.12);}
 body.dark #file-dropdown{background:#14171f;border-color:#282b33;backdrop-filter:none;}
+body.dark .dd-flyout{background:#14171f;border-color:#282b33;backdrop-filter:none;}
 body.dark .dd-item{color:white;}
 body.dark .dd-item:hover{background:rgba(255,255,255,0.1);}
 body.dark #text-toolbar{background:rgba(20,23,31,0.95);border-bottom-color:rgba(255,255,255,0.1);}
@@ -618,6 +635,7 @@ body.blue #canvas-container{background:transparent;}
 body.blue .panel{background:#ffffff;border-color:#1481bd;}
 body.blue .panel-header{background:#dadde4;}
 body.blue #file-dropdown{background:#ffffff;border-color:#1481bd;backdrop-filter:none;}
+body.blue .dd-flyout{background:#ffffff;border-color:#1481bd;backdrop-filter:none;}
 body.blue .menu-item{color:#ffffff;}
 body.blue .menu-item:hover,body.blue .menu-item.open{background:rgba(255,255,255,0.2);}
 body.blue .tool-btn:hover{background:#e8eaee;}
@@ -863,7 +881,15 @@ body.dark #sidebar-handle{border-bottom-color:rgba(255,255,255,0.1);}
             <div class="dd-item" id="reset-btn">Reset</div>
             <div class="dd-item" id="screenshot-btn">Screenshot</div>
             <div class="dd-item" id="copy-btn">Copy to Clipboard</div>
-            <div class="dd-item" id="theme-btn">Theme: Light</div>
+            <div class="dd-item dd-parent" id="theme-parent">
+              <span>Theme</span>
+              <span class="dd-arrow">▸</span>
+              <div class="dd-flyout" id="theme-flyout">
+                <div class="dd-item" data-theme="light">Light</div>
+                <div class="dd-item" data-theme="dark">Dark</div>
+                <div class="dd-item" data-theme="blue">Blue</div>
+              </div>
+            </div>
             <div class="dd-item" id="shortcuts-btn">Shortcuts ?</div>
           </div>
         </div>
@@ -2045,6 +2071,8 @@ document.getElementById('file-menu').addEventListener('click', e => {
 function closeFileMenu() {
   document.getElementById('file-dropdown').classList.add('hidden');
   document.getElementById('file-menu').classList.remove('open');
+  const tp = document.getElementById('theme-parent');
+  if (tp) tp.classList.remove('open');
 }
 
 document.getElementById('reset-btn').addEventListener('click', () => {
@@ -2076,16 +2104,27 @@ function applyTheme(t) {
   darkMode = currentTheme === 'dark';
   // Rebuild the full body class so the active tool + theme stay in sync
   document.body.className = `tool-${activeTool}${currentTheme !== 'light' ? ' ' + currentTheme : ''}`;
-  const btn = document.getElementById('theme-btn');
-  if (btn) btn.textContent = 'Theme: ' + THEME_LABELS[currentTheme];
+  // Mark the active theme in the flyout submenu
+  document.querySelectorAll('#theme-flyout .dd-item').forEach(it =>
+    it.classList.toggle('active', it.dataset.theme === currentTheme));
   try { localStorage.setItem('bry_theme', currentTheme); } catch(e) {}
   if (penCanvas && penCanvas.width) penRender();
 }
 
-document.getElementById('theme-btn').addEventListener('click', e => {
-  e.stopPropagation(); // keep the menu open so the user can cycle themes
-  const next = THEMES[(THEMES.indexOf(currentTheme) + 1) % THEMES.length];
-  applyTheme(next);
+// Parent item: toggle the flyout open on click (for touch; hover handles desktop)
+document.getElementById('theme-parent').addEventListener('click', e => {
+  if (e.target.closest('#theme-flyout')) return; // flyout items handle themselves
+  e.stopPropagation();
+  document.getElementById('theme-parent').classList.toggle('open');
+});
+
+// Flyout items: pick a theme and close the menu
+document.querySelectorAll('#theme-flyout .dd-item').forEach(item => {
+  item.addEventListener('click', e => {
+    e.stopPropagation();
+    applyTheme(item.dataset.theme);
+    closeFileMenu();
+  });
 });
 
 document.getElementById('about-btn').addEventListener('click', () => {
